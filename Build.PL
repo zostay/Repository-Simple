@@ -3,7 +3,7 @@ use strict;
 use Module::Build;
 
 my $build = Module::Build->new(
-	module_name        => 'File::System',
+	module_name        => 'Content::Repository',
 	create_makefile_pl => 'passthrough',
 	license            => 'perl',
 	requires           => {
@@ -11,7 +11,7 @@ my $build = Module::Build->new(
 		'Parse::RecDescent'     => 1.94,
 	},
 	PL_files			=> {
-		'lib/File/System/Globber.PL' => 'lib/File/System/Globber.pm',
+		'lib/Content/Repository/Util/Globber.PL' => 'lib/Content/Repository/Util/Globber.pm',
 	},
 );
 

@@ -1,3 +1,32 @@
+0.01    2006-03-11 20:54    Andrew Sterling Hanenkamp
+
+    * This is a fork of File::System called Content::Repository. As of this
+      version, this is only an experiment. See the documentation in
+      Content::Repository for goals.
+    * lib/File/System.pm: Renamed to lib/Content/Repository/Factory.pm
+    * lib/File/System/Object.pm: Renamed to lib/Content/Repository/Engine.pm
+    * lib/File/System/Real.pm: Renamed to
+      lib/Content/Repository/Engine/FileSystem.pm
+    * lib/File/System/Layered.pm: Renamed to
+      lib/Content/Repository/Engine/Layered.pm
+    * lib/File/System/Table.pm: Renamed to
+      lib/Content/Repository/Engine/Table.pm
+    * lib/File/System/Passthrough.pm: Renamed to
+      lib/Content/Repository/Engine/Table.pm
+    * lib/File/System/Fake.pm: Renamed to lib/Content/Repository/Engine/Fake.pm
+    * lib/File/System/Globber.PL: Renamed to
+      lib/Content/Repository/Util/Globber.PL
+    * lib/File/System/Test.pm: Renamed to lib/Content/Repository/Test.pm
+    * lib/Content/Repository.pm: Added as the new central module.
+    * lib/Content/Repository/Property.pm: Added to represent property objects.
+    * lib/Content/Repository/Node.pm: Added to represent node objects.
+    * lib/Content/Repository/PropertyType.pm: Added to represent property type
+      objects.
+    * lib/Content/Repository/NodeType.pm: Added to represent node type objects.
+    * lib/Content/Repository/Value.pm: Added this helper for storing and
+      performing value checking, inflation, and deflation.
+    * Build.PL: Rewrote to reflect the new package name.
+
 1.16    2005-12-03 16:34    Andrew Sterling Hanenkamp
 
     * t/07_layered.t: Added additional tests to reveal a bug that causes

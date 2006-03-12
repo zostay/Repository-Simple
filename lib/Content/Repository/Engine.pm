@@ -1,34 +1,40 @@
-package File::System::Object;
+package Content::Repository::Engine;
 
 use strict;
 use warnings;
 
-our $VERSION = '1.16';
+our $VERSION = '0.01';
 
 use Carp;
-use File::System::Globber;
+use Content::Repository::Util::Globber;
 
 =head1 NAME
 
-File::System::Object - Abstract class that every file system module builds upon
+Content::Repository::Engine - Content repository engines' abstract base class
 
 =head1 DESCRIPTION
 
-Before reading this documentation, you should see L<File::System>.
+This documentation is meant for developers wishing to implement a content repository engine. If you just want to know how to use the content repository API, L<Content::Repository> is where you'll want to go.
 
-File system modules extend this class to provide their functionality. A file system object represents a path in the file system and provides methods to locate other file system objects either relative to this object or from an absolute root.
+Content repositories extend this class to provide their functionality. This content repository system simplifies the creation of content repository engines through the use of a bridge. That is, each engine is a single class that is wrapped by the other modules in a more developer-friendly way. This simplifies the development of the engines by keeping the implementation down to just a single class. This simplifies the development using the content repository API by allowing developers to focus on content repositories without regard to the underlying implementations.
 
-If you wish to write your own file system module, see the documentation below for L</"MODULE AUTHORS">.
+To implement a content repository engine, create a subclass of L<Content::Repository::Engine> that implements all the methods described in this documentation.
 
-=head2 FEATURES
+  package Content::Repository::Engine::MyCustom;
 
-The basic idea is that every file system is comprised of objects. In general, all file systems will contain files and directories. Files are object which contain binary or textual data, while directories merely contain more files. Because any given file system might have arbitrarily many (or few) different types and the types might not always fall into the "file" or "directory" categories, the C<File::System::Object> attempts to generalize this functionality into "content" and "container". 
+  use strict;
+  use warnings;
 
-More advanced types might also be possible, e.g. symbolic links, devices, FIFOs, etc. However, at this time, no general solution is provided for handling these. (Individual file system modules may choose to add support for these in whatever way seems appropriate.)
+  use base qw( Content::Repository::Engine );
 
-Each file system object must specify a method stating whether it contains file content and another method stating whether it may contain child files. It is possible that a given file system implementation provides both simultaneously in a single object.
+  sub new { ... }
+  sub fetch_node_type_named { ... }
+  sub fetch_property_type_named { ... }
+  sub fetch_nodes { ... }
+  sub fetch_properties { ... }
+  sub fetch_node_type_of { ... }
 
-All file system objects allow for the lookup of other file system object by relative or absolute path names.
+It's that easy.
 
 =head2 PATH METHODS
 
