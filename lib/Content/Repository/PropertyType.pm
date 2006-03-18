@@ -164,7 +164,7 @@ sub option {
     my $self = shift;
 
     if (wantarray) {
-        return %{ $self->{options} }{@_};
+        return @{ $self->{options} }{ @_ };
     }
 
     else {
@@ -254,7 +254,7 @@ sub deflate {
     my ($self, $value) = @_;
 
     if (defined $self->{deflate}) {
-        return $self->{deflate}->($self, $vale);
+        return $self->{deflate}->($self, $value);
     }
 
     else {

@@ -17,7 +17,7 @@ Content::Repository::Node - Content repository node information
       FileSystem => { root => '/var/db/cr' }
   );
 
-  my $node = $repository->get_root_node;
+  my $node = $repository->root_node;
   print_node($node, 0);
 
   sub print_node {

@@ -1,38 +1,85 @@
-package File::System::Real;
+package Content::Repository::Engine::FileSystem;
 
 use strict;
 use warnings;
 
-our $VERSION = '1.15';
+our $VERSION = '0.01';
 
 use Carp;
-use File::Copy ();
-use File::Copy::Recursive;
-use File::Glob ();
-use File::Path ();
+use Content::Repository::NodeType;
+use Content::Repository::PropertyType;
+#use File::Copy ();
+#use File::Copy::Recursive;
+#use File::Glob ();
+#use File::Path ();
 use File::Spec;
-use FileHandle;
+#use FileHandle;
 
-use base 'File::System::Object';
+use base 'Content::Repository::Engine';
 
 =head1 NAME
 
-File::System::Real - A file system module based on the real file system
+Content::Repository::Engine::FileSystem - Content repository in the real FS
 
 =head1 SYNOPSIS
 
-  use File::System;
-  $root = File::System->new('Real', root => '/usr/local');
+  use Content::Repository;
+  my $fs = Content::Repository::Factory->('FileSystem', root => '/usr/local');
 
 =head1 DESCRIPTION
 
-This is the most basic file system implementation. It is purely implemented within terms of a real file system.
+Each node in this content repository is a file system file. As of this writing, the repository is capable of handling directories and files. All other file types may or may not be handled appropriate.
 
 =head1 OPTIONS
 
-This file system module accepts only a single object, C<root>. If not given, the current working directory is assumed for the value C<root>. All files returned by the file system will be rooted at the given (or assumed) point.
+This file system module accepts only a single option, C<root>. If not given, the current working directory is assumed for the value C<root>. All files returned by the file system will be rooted at the given (or assumed) point.
 
 =cut
+
+my %node_types = (
+    'fs:object' => Content::Repository::NodeType->new(
+        name     => 'fs:object',
+        abstract => 1,
+        child_properties => {
+            'fs:dev'     => 'fs:scalar',
+            'fs:ino'     => 'fs:scalar',
+            'fs:mode'    => 'fs:scalar',
+            'fs:nlink'   => 'fs:scalar',
+            'fs:uid'     => 'fs:scalar',
+            'fs:gid'     => 'fs:scalar',
+            'fs:rdev'    => 'fs:scalar',
+            'fs:size'    => 'fs:scalar',
+            'fs:atime'   => 'fs:scalar',
+            'fs:mtime'   => 'fs:scalar',
+            'fs:ctime'   => 'fs:scalar',
+            'fs:blksize' => 'fs:scalar',
+            'fs:blocks'  => 'fs:scalar',
+        },
+    ),
+
+    'fs:file' => Content::Repository::NodeType->new(
+        name       => 'fs:file',
+        supertypes => [ qw( fs:object ) ],
+        child_properties => {
+            'fs:content' => 'fs:scalar',
+        },
+    ),
+
+    'fs:directory' => Content::Repository::NodeType->new(
+        name       => 'fs:directory',
+        supertypes => [ qw( fs:object ) ],
+        child_nodes => {
+            '*' => 'fs:object',
+        },
+    ),
+);
+
+my %property_types = (
+    'fs:scalar' => Content::Repository::PropertyType->new(
+        name     => 'fs:scalar',
+        required => 1,
+    ),
+);
 
 sub new {
 	my $class = shift;
@@ -40,7 +87,6 @@ sub new {
 
 	$args{root} ||= '.';
 	$args{root} = File::Spec->rel2abs($args{root});
-	$args{root} = $class->normalize_path($args{root});
 	my $root = File::Spec->canonpath($args{root});
 
 	-e $root or croak "Sorry, root $root does not exist!";
@@ -48,9 +94,83 @@ sub new {
 
 	return bless {
 		fs_root  => $root,
-		path     => '/',
-		fullpath => $root,
 	}, $class;
+}
+
+sub fetch_node_type_named {
+    my ($self, $type_name) = @_;
+    return $node_types{ $type_name };
+}
+
+sub fetch_property_type_named {
+    my ($self, $type_name) = @_;
+    return $property_types{ $type_name };
+}
+
+sub fetch_nodes {
+    my ($self, $path) = @_;
+
+    my $real_path = File::Spec->catfile($self->{fs_root}, $path);
+    
+    if (!-e $real_path) {
+        croak qq(no node found at path "$path");
+    }
+
+    if (!-d $real_path) {
+        return ();
+    }
+
+    opendir DIR, $real_path or croak qq(failed to readdir for path "$path");
+    my @dirs = <DIR>;
+    closedir DIR;
+
+    return map { "$path/$_" } @dirs;
+}
+
+sub fetch_properties {
+    my ($self, $path) = @_;
+
+    my $real_path = File::Spec->catfile($self->{fs_root}, $path);
+
+    if (!-e $real_path) {
+        croak qq(no node found at path "$path");
+    }
+
+    my %properties;
+    @properties{ qw( 
+        fs:dev fs:ino fs:mode fs:nlink fs:uid fs:gid fs:rdev fs:size
+        fs:atime fs:mtime fs:ctime fs:blksize fs:blocks
+    ) } = stat(_);
+
+    if (-f $real_path) {
+        open FILE, $real_path or croak qq(failed to read file at path "$path");
+        $properties{'fs:content'} = join '', <FILE>; # XXX insane!
+        close FILE;
+    }
+
+    foreach (keys %properties) {
+        tie $_, 'Content::Respository::Value', $property_types{'fs:scalar'}, $_;
+    }
+
+    return %properties;
+}
+
+sub fetch_node_type_of {
+    my ($self, $path) = @_;
+
+    my $real_path = File::Spec->catfile($self->{fs_root}, $path);
+
+    if (!-e $real_path) {
+        croak qq(no file found at path "$path");
+    }
+
+    if (-d $real_path) {
+        return $node_types{'fs:directory'};
+    }
+
+    else {
+        return $node_types{'fs:file'};
+    }
 }
 
 sub is_valid {

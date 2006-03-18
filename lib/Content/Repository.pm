@@ -15,8 +15,8 @@ Content::Repository - Content Repository system for Perl
 
   use Content::Repository;
 
-  my $repository = Content::Repository::Factory->create(
-      FileSystem => { root => /home/foo }
+  my $repository = Content::Repository::Factory->attach(
+      FileSystem => root => /home/foo
   );
 
 =head1 DESCRIPTION

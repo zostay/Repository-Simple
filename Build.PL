@@ -8,7 +8,7 @@ my $build = Module::Build->new(
 	license            => 'perl',
 	requires           => {
 		'File::Copy::Recursive' => '0.05',
-		'Parse::RecDescent'     => 1.94,
+		'Parse::RecDescent'     => '1.94',
 	},
 	PL_files			=> {
 		'lib/Content/Repository/Util/Globber.PL' => 'lib/Content/Repository/Util/Globber.pm',

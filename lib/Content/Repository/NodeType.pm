@@ -5,6 +5,8 @@ use warnings;
 
 our $VERSION = '0.01';
 
+use Carp;
+
 =head1 NAME
 
 Content::Repository::NodeType - Types for content repository nodes
@@ -195,15 +197,15 @@ sub child_properties {
     
     my %child_properties;
     for my $supertype (@{ $self->{supertypes} }) {
-        %child_nodes = (
-            %child_nodes, 
+        %child_properties = (
+            %child_properties, 
             $self->{repository}->node_type($supertype)->child_properties
         );
     }
 
-    %child_nodes = (%child_nodes, %{ $self->{child_properties} });
+    %child_properties = (%child_properties, %{ $self->{child_properties} });
 
-    return %child_nodes;
+    return %child_properties;
 }
 
 =item $auto_created = $type-E<gt>auto_created
