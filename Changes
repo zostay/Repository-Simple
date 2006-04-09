@@ -12,20 +12,13 @@
     * lib/File/System/Real.pm: Renamed to
       lib/Repository/Simple/Engine/FileSystem.pm
 	* lib/Repository/Simple/Engine/FileSystem.pm: Rewrote implementation.
-    * lib/File/System/Layered.pm: Renamed to
-      lib/Repository/Simple/Engine/Layered.pm
-	* lib/Repository/Simple/Engine/Layered.pm: XXX
-    * lib/File/System/Table.pm: Renamed to
-      lib/Repository/Simple/Engine/Table.pm
-	* lib/Repository/Simple/Engine/Table.pm: XXX
-    * lib/File/System/Passthrough.pm: Renamed to
-      lib/Repository/Simple/Engine/Passthrough.pm
-	* lib/Repository/Simple/Engine/Passthrough.pm: XXX
+    * lib/File/System/Layered.pm: Removed.
+    * lib/File/System/Table.pm: Removed.
+    * lib/File/System/Passthrough.pm: Removed.
     * lib/File/System/Util.pm: Added a utility library with some helpful
       subroutines--useful both to the core and to engine implementations.
-    * lib/File/System/Globber.PL: Renamed to
-      lib/Repository/Simple/Util/Globber.PL
-    * lib/File/System/Test.pm: Renamed to lib/Repository/Simple/Test.pm
+    * lib/File/System/Globber.PL: Removed.
+    * lib/File/System/Test.pm: Removed.
     * lib/Repository/Simple/Property.pm: Added to represent property objects.
     * lib/Repository/Simple/Node.pm: Added to represent node objects.
     * lib/Repository/Simple/Type.pod: Added to documented the different kinds
