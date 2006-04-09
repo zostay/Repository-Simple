@@ -1,4 +1,4 @@
-package Content::Repository::Value;
+package Repository::Simple::Value;
 
 use strict;
 use warnings;
@@ -7,11 +7,11 @@ our $VERSION = '0.01';
 
 =head1 NAME
 
-Content::Repository::Value - Tie interface to property values
+Repository::Simple::Value - Tie interface to property values
 
 =head1 DESCRIPTION
 
-This class is used as a helper to L<Content::Repository::Property> and L<Content::Repository::Type::Value>. Do not use this directly. Ever.
+This class is used as a helper to L<Repository::Simple::Property> and L<Repository::Simple::Type::Value>. Do not use this directly. Ever.
 
 =cut
 

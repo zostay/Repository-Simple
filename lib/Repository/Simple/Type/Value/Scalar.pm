@@ -1,19 +1,19 @@
-package Content::Repository::Type::Value::Scalar;
+package Repository::Simple::Type::Value::Scalar;
 
 use strict;
 use warnings;
 
 our $VERSION = '0.01';
 
-use base 'Content::Repository::Type::Value';
+use base 'Repository::Simple::Type::Value';
 
 =head1 NAME
 
-Content::Repository::Type::Value::Scalar - Simple "rs:scalar" value type
+Repository::Simple::Type::Value::Scalar - Simple "rs:scalar" value type
 
 =head1 SYNOPSIS
 
-  my $value_type = Content::Repository::Type::Value::Scalar->new;
+  my $value_type = Repository::Simple::Type::Value::Scalar->new;
 
 =head1 DESCRIPTION
 

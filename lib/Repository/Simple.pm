@@ -1,4 +1,4 @@
-package Content::Repository;
+package Repository::Simple;
 
 use strict;
 use warnings;
@@ -6,17 +6,17 @@ use warnings;
 our $VERSION = '0.01';
 
 use Carp;
-use Content::Repository::Node;
+use Repository::Simple::Node;
 
 =head1 NAME
 
-Content::Repository - Content Repository system for Perl
+Repository::Simple - Content Repository system for Perl
 
 =head1 SYNOPSIS
 
-  use Content::Repository;
+  use Repository::Simple;
 
-  my $repository = Content::Repository->attach(
+  my $repository = Repository::Simple->attach(
       FileSystem => root => /home/foo
   );
 
@@ -44,25 +44,25 @@ This content repository package implements a bridge pattern for implementing rep
 
 You never interact with the repository engine directly after you instantiate it using the repository connection factory method, C<attach()>:
 
-  my $repository = Content::Repository->attach(...);
+  my $repository = Repository::Simple->attach(...);
 
-The returned repository object, C<$repository> in this example, is an instance of L<Content::Repository>, which holds an internal reference to the engine. Thus, you never need to be aware of how the engine works after instantiation.
+The returned repository object, C<$repository> in this example, is an instance of L<Repository::Simple>, which holds an internal reference to the engine. Thus, you never need to be aware of how the engine works after instantiation.
 
-If you are interested in building a repository engine, the details of repository engine design may be found in L<Content::Repository::Engine>.
+If you are interested in building a repository engine, the details of repository engine design may be found in L<Repository::Simple::Engine>.
 
 =head2 THIS CLASS
 
-This class provides the entry point into the repository API. The typical way of getting a reference to an instance of this class is to use the L<attach()> method to connect to a repository. This method of returns an instance of L<Content::Repository>, which encapsulates the requested repository engine connection.
+This class provides the entry point into the repository API. The typical way of getting a reference to an instance of this class is to use the L<attach()> method to connect to a repository. This method of returns an instance of L<Repository::Simple>, which encapsulates the requested repository engine connection.
 
 As an alternative, you may also instantiate an engine directly:
 
   my $engine = MyProject::Content::Engine->new;
-  my $repository = Content::Repository->new($engine);
+  my $repository = Repository::Simple->new($engine);
 
 This shouldn't be necessary in most cases though, since this is the same as:
 
   my $repository 
-      = Content::Repository->attach('MyProject::Content::Engine');
+      = Repository::Simple->attach('MyProject::Content::Engine');
 
 An instance of this class may be used to retrieve information about the repository, fetch nodes or properties, and manipulate the repository.
 
@@ -70,15 +70,15 @@ An instance of this class may be used to retrieve information about the reposito
 
 =over
 
-=item $repository = Content::Repository-E<gt>attach($module_name, ...)
+=item $repository = Repository::Simple-E<gt>attach($module_name, ...)
 
 This will attach to a repository via the named engine, C<$module_name>. The repository object representing that storage is returned.
 
-If the C<$module_name does not contain any colons, then the package "C<Content::Repository::Engine::$module_name>" is loaded. Otherwise, the C<$module_name> is loaded and its C<new> method is used.
+If the C<$module_name does not contain any colons, then the package "C<Repository::Simple::Engine::$module_name>" is loaded. Otherwise, the C<$module_name> is loaded and its C<new> method is used.
 
 Any additional arguments passed to this method are then passed to the C<new> method of the engine.
 
-See L<Content::Repository::Engine> if you are interested in the guts.
+See L<Repository::Simple::Engine> if you are interested in the guts.
 
 =cut
 
@@ -91,7 +91,7 @@ sub attach {
 
     # XXX should this be configurable?
     $engine =~ /:/
-        or $engine = "Content::Repository::Engine::$engine";
+        or $engine = "Repository::Simple::Engine::$engine";
 
     eval "use $engine";
     warn "Failed to load package for engine, $engine: $@" if $@;
@@ -102,10 +102,10 @@ sub attach {
         croak $@ if $@;
     }
 
-    return Content::Repository->new($instance);
+    return Repository::Simple->new($instance);
 }
 
-=item $repository = Content::Repository-E<gt>new($engine)
+=item $repository = Repository::Simple-E<gt>new($engine)
 
 Given an engine, this constructor wraps the engine with a repository object.
 
@@ -129,7 +129,7 @@ sub engine {
 
 =item $node_type = $repository-E<gt>node_type($type_name)
 
-Returns the L<Content::Repository::Type::Node> object for the given C<$type_name> or returns C<undef> if no such type exists in the repository.
+Returns the L<Repository::Simple::Type::Node> object for the given C<$type_name> or returns C<undef> if no such type exists in the repository.
 
 =cut
 
@@ -145,7 +145,7 @@ sub node_type {
 
 =item $property_type = $repository-E<gt>property_type($type_name)
 
-Returns the L<Content::Repository::Type::Property> object for the given C<$type_name> or returns C<undef> if no such type exists in the repository.
+Returns the L<Repository::Simple::Type::Property> object for the given C<$type_name> or returns C<undef> if no such type exists in the repository.
 
 =cut
 
@@ -167,7 +167,7 @@ Return the root node in the repository.
 
 sub root_node {
     my $self = shift;
-    return Content::Repository::Node->new($self, "/");
+    return Repository::Simple::Node->new($self, "/");
 }
 
 =back

@@ -5,4 +5,4 @@ use warnings;
 
 use Test::More skip_all => 'Table storage engine is not implemented yet.';
 
-use_ok('Content::Repository::Engine::Table');
+use_ok('Repository::Simple::Engine::Table');

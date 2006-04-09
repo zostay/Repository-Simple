@@ -1,4 +1,4 @@
-package Content::Repository::Util;
+package Repository::Simple::Util;
 
 use strict;
 use warnings;
@@ -18,11 +18,11 @@ our @EXPORT_OK = qw(
 
 =head1 NAME
 
-Content::Repository::Util - Utility methods shared by content repository components
+Repository::Simple::Util - Utility methods shared by content repository components
 
 =head1 SYNOPSIS
 
-  use Content::Repository::Util qw( normalize_path dirname basename );
+  use Repository::Simple::Util qw( normalize_path dirname basename );
 
   my $clean_path = normalize_path("/usr", "../messy/../.././///messy/path");
 

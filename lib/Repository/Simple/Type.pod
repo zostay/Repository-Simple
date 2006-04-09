@@ -1,6 +1,6 @@
 =head1 NAME
 
-Content::Repository::Type - Summary of the typing system
+Repository::Simple::Type - Summary of the typing system
 
 =head1 DESCRIPTION
 
@@ -12,19 +12,19 @@ There are four levels in the type system. From highest to lowest, the levels are
 
 =item 1.
 
-B<Node Type.> Node types are represented by L<Content::Repository::Type::Node>. These define the overall organization of nodes in the system. A node is a collection of child nodes and properties. A node type determines what structures are expected or permissible for nodes.
+B<Node Type.> Node types are represented by L<Repository::Simple::Type::Node>. These define the overall organization of nodes in the system. A node is a collection of child nodes and properties. A node type determines what structures are expected or permissible for nodes.
 
 =item 2.
 
-B<Property Type.> Property types are represented by L<Content::Repository::Type::Property>. These define the overall nature of each property. A property is a key/value pair. A property type determines what type is expected for a given property value and if that property can be added, changed, or removed.
+B<Property Type.> Property types are represented by L<Repository::Simple::Type::Property>. These define the overall nature of each property. A property is a key/value pair. A property type determines what type is expected for a given property value and if that property can be added, changed, or removed.
 
 =item 3.
 
-B<Value Type.> Value types are represented by L<Content::Repository::Type::Value>. These define convenience wrappers around storage types. Values are an abstraction around stored fields, which allow a stored field to be treated as complex Perl data types without requiring any additional functionality in the storage engine.
+B<Value Type.> Value types are represented by L<Repository::Simple::Type::Value>. These define convenience wrappers around storage types. Values are an abstraction around stored fields, which allow a stored field to be treated as complex Perl data types without requiring any additional functionality in the storage engine.
 
 =item 4.
 
-B<Storage Type.> Storage types are represented by L<Content::Repository::Type::Storage>. These define the nature of fields stored in a storage engine. Storage fields represent the underlying "boxes" in which values are really stored.
+B<Storage Type.> Storage types are represented by L<Repository::Simple::Type::Storage>. These define the nature of fields stored in a storage engine. Storage fields represent the underlying "boxes" in which values are really stored.
 
 =back
 
@@ -32,7 +32,7 @@ See the documentation associated with each of the above for details.
 
 =head1 SEE ALSO
 
-L<Content::Repository::Type::Node>, L<Content::Repository::Type::Property>, L<Content::Repository::Type::Value>, L<Content::Repository::Type::Storage>
+L<Repository::Simple::Type::Node>, L<Repository::Simple::Type::Property>, L<Repository::Simple::Type::Value>, L<Repository::Simple::Type::Storage>
 
 =head1 AUTHOR
 

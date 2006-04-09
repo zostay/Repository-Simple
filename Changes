@@ -1,68 +1,68 @@
 0.01    2006-03-11 20:54    Andrew Sterling Hanenkamp
 
-    * This is a fork of File::System called Content::Repository. As of this
+    * This is a fork of File::System called Repository::Simple. As of this
       version, this is only an experiment. See the documentation in
-      Content::Repository for goals.
-    * lib/File/System.pm: Renamed to lib/Content/Repository.pm
-	* lib/Content/Repository/Factory.pm: Changed new() to attach(). Updated
+      Repository::Simple for goals.
+    * lib/File/System.pm: Renamed to lib/Repository/Simple.pm
+	* lib/Repository/Simple/Factory.pm: Changed new() to attach(). Updated
 	  implementation and altered documentation.
-    * lib/File/System/Object.pm: Renamed to lib/Content/Repository/Engine.pm
-	* lib/Content/Repository/Engine.pm: Completely rewrote the innards and
+    * lib/File/System/Object.pm: Renamed to lib/Repository/Simple/Engine.pm
+	* lib/Repository/Simple/Engine.pm: Completely rewrote the innards and
 	  documentation from before.
     * lib/File/System/Real.pm: Renamed to
-      lib/Content/Repository/Engine/FileSystem.pm
-	* lib/Content/Repository/Engine/FileSystem.pm: Rewrote implementation.
+      lib/Repository/Simple/Engine/FileSystem.pm
+	* lib/Repository/Simple/Engine/FileSystem.pm: Rewrote implementation.
     * lib/File/System/Layered.pm: Renamed to
-      lib/Content/Repository/Engine/Layered.pm
-	* lib/Content/Repository/Engine/Layered.pm: XXX
+      lib/Repository/Simple/Engine/Layered.pm
+	* lib/Repository/Simple/Engine/Layered.pm: XXX
     * lib/File/System/Table.pm: Renamed to
-      lib/Content/Repository/Engine/Table.pm
-	* lib/Content/Repository/Engine/Table.pm: XXX
+      lib/Repository/Simple/Engine/Table.pm
+	* lib/Repository/Simple/Engine/Table.pm: XXX
     * lib/File/System/Passthrough.pm: Renamed to
-      lib/Content/Repository/Engine/Passthrough.pm
-	* lib/Content/Repository/Engine/Passthrough.pm: XXX
+      lib/Repository/Simple/Engine/Passthrough.pm
+	* lib/Repository/Simple/Engine/Passthrough.pm: XXX
     * lib/File/System/Util.pm: Added a utility library with some helpful
       subroutines--useful both to the core and to engine implementations.
     * lib/File/System/Globber.PL: Renamed to
-      lib/Content/Repository/Util/Globber.PL
-    * lib/File/System/Test.pm: Renamed to lib/Content/Repository/Test.pm
-    * lib/Content/Repository/Property.pm: Added to represent property objects.
-    * lib/Content/Repository/Node.pm: Added to represent node objects.
-    * lib/Content/Repository/Type.pod: Added to documented the different kinds
+      lib/Repository/Simple/Util/Globber.PL
+    * lib/File/System/Test.pm: Renamed to lib/Repository/Simple/Test.pm
+    * lib/Repository/Simple/Property.pm: Added to represent property objects.
+    * lib/Repository/Simple/Node.pm: Added to represent node objects.
+    * lib/Repository/Simple/Type.pod: Added to documented the different kinds
       of type in the content repository system.
-    * lib/Content/Repository/Type/Property.pm: Added to represent property type
+    * lib/Repository/Simple/Type/Property.pm: Added to represent property type
       objects.
-    * lib/Content/Repository/Type/Node.pm: Added to represent node type objects.
-    * lib/Content/Repository/Type/Value.pm: Added to represent value type
+    * lib/Repository/Simple/Type/Node.pm: Added to represent node type objects.
+    * lib/Repository/Simple/Type/Value.pm: Added to represent value type
       objects.
-    * lib/Content/Repository/Type/Value/Scalar.pm: Added to implement the most
+    * lib/Repository/Simple/Type/Value/Scalar.pm: Added to implement the most
       generic value type.
-    * lib/Content/Repository/Value.pm: Added this helper for storing and
+    * lib/Repository/Simple/Value.pm: Added this helper for storing and
       performing value checking, inflation, and deflation.
     * Build.PL: Rewrote to reflect the new package name.
 	* t/01_normalize_path.t, t/02_glob.t, t/03_real.t, t/04_table_basic.t,
 	  t/05_table_multimount.t, t/06_table_mount.t, t/07_layered.t,
 	  t/08_passthrough.t: Removed the old test files.
-	* t/use.t: Added a simple test for just "use Content::Repository".
-	* t/factory.t: Added tests for Content::Repository::Factory.
-	* t/repository.t: Added tests for Content::Repository.
-	* t/node.t: Added tests for Content::Repository::Node.
-	* t/node_type.t: Added tests for Content::Repository::Type::Node.
+	* t/use.t: Added a simple test for just "use Repository::Simple".
+	* t/factory.t: Added tests for Repository::Simple::Factory.
+	* t/repository.t: Added tests for Repository::Simple.
+	* t/node.t: Added tests for Repository::Simple::Node.
+	* t/node_type.t: Added tests for Repository::Simple::Type::Node.
     * t/engine_dbi.t: Added a stub for tests of
-      Content::Repository::Engine::DBI.
-    * t/property.t: Added tests for Content::Repository::Property.
+      Repository::Simple::Engine::DBI.
+    * t/property.t: Added tests for Repository::Simple::Property.
     * t/engine_xml.t: Added a stub for tests of
-      Content::Repository::Engine::XML.
-    * t/property_type.t: Added tests for Content::Repository::Type::Property.
+      Repository::Simple::Engine::XML.
+    * t/property_type.t: Added tests for Repository::Simple::Type::Property.
     * t/engine_memory.t: Added a stub for tests of
-    * Content::Repository::Engine::Memory.
+    * Repository::Simple::Engine::Memory.
     * t/engine_layered.t: Added a stub for tests of
-    * Content::Repository::Engine::Layer.
-    * t/engine.t: Added tests for Content::Repository::Engine.
+    * Repository::Simple::Engine::Layer.
+    * t/engine.t: Added tests for Repository::Simple::Engine.
     * t/engine_file_system.t: Added tests for
-      Content::Repository::Engine::FileSystem.
-    * t/value.t: Added tests for Content::Repository::Value.
-    * t/engine_table.t: Added tests for Content::Repository::Engine::Table.
+      Repository::Simple::Engine::FileSystem.
+    * t/value.t: Added tests for Repository::Simple::Value.
+    * t/engine_table.t: Added tests for Repository::Simple::Engine::Table.
 	* t/root, t/root/foo, t/root/bar, t/root/baz, t/root/baz/qux: Added some
 	  files for testing upon.
 

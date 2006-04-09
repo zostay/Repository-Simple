@@ -5,7 +5,7 @@ use warnings;
 
 use Test::More tests => 19;
 
-use_ok('Content::Repository::Engine',
+use_ok('Repository::Simple::Engine',
     qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS )
 );
 
@@ -16,16 +16,16 @@ ok($NODE_EXISTS);
 ok($PROPERTY_EXISTS);
 isnt($NODE_EXISTS, $PROPERTY_EXISTS);
 
-package Content::Repository::Engine::Test;
+package Repository::Simple::Engine::Test;
 
-use base 'Content::Repository::Engine';
+use base 'Repository::Simple::Engine';
 
 package main;
 
 # Test generic constructor
-my $engine = Content::Repository::Engine::Test->new(foo => 1, bar => 2);
+my $engine = Repository::Simple::Engine::Test->new(foo => 1, bar => 2);
 ok($engine);
-isa_ok($engine, 'Content::Repository::Engine::Test');
+isa_ok($engine, 'Repository::Simple::Engine::Test');
 is($engine->{foo}, 1);
 is($engine->{bar}, 2);
 

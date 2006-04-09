@@ -1,4 +1,4 @@
-package Content::Repository::Engine;
+package Repository::Simple::Engine;
 
 use strict;
 use warnings;
@@ -20,26 +20,26 @@ Readonly our $PROPERTY_EXISTS => 2;
 Readonly our $NOT_EXISTS      => 0;
 
 #use Carp;
-#use Content::Repository::Util::Globber;
+#use Repository::Simple::Util::Globber;
 
 =head1 NAME
 
-Content::Repository::Engine - Content repository engines' abstract base class
+Repository::Simple::Engine - Content repository engines' abstract base class
 
 =head1 DESCRIPTION
 
-This documentation is meant for developers wishing to implement a content repository engine. If you just want to know how to use the content repository API, L<Content::Repository> is where you'll want to go.
+This documentation is meant for developers wishing to implement a content repository engine. If you just want to know how to use the content repository API, L<Repository::Simple> is where you'll want to go.
 
 Content repositories extend this class to provide their functionality. This content repository system simplifies the creation of content repository engines through the use of a bridge. That is, each engine is a single class that is wrapped by the other modules in a more developer-friendly way. This simplifies the development of the engines by keeping the implementation down to just a single class. This simplifies the development using the content repository API by allowing developers to focus on content repositories without regard to the underlying implementations.
 
-To implement a content repository engine, create a subclass of L<Content::Repository::Engine> that implements all the methods described in this documentation.
+To implement a content repository engine, create a subclass of L<Repository::Simple::Engine> that implements all the methods described in this documentation.
 
-  package Content::Repository::Engine::MyCustom;
+  package Repository::Simple::Engine::MyCustom;
 
   use strict;
   use warnings;
 
-  use base qw( Content::Repository::Engine );
+  use base qw( Repository::Simple::Engine );
 
   sub new { ... }
   sub fetch_node_type_named { ... }
@@ -56,17 +56,17 @@ Your implementation must implement the following methods:
 
 =over
 
-=item $engine = Content::Repository::Engine-E<gt>new(...)
+=item $engine = Repository::Simple::Engine-E<gt>new(...)
 
-This method constructs an instance of the engine. The arguments can be anything you want. The C<connect()> method of L<Content::Repository::Factory> will pass the arguments as is to the new method upon creation. I.e.,
+This method constructs an instance of the engine. The arguments can be anything you want. The C<connect()> method of L<Repository::Simple::Factory> will pass the arguments as is to the new method upon creation. I.e.,
 
-  my $repository = Content::Repository::Factory->connect(
+  my $repository = Repository::Simple::Factory->connect(
       MyEngine => @args
   );
 
 would effectively call:
 
-  Content::Repository::Engine::MyEngine->new(@args);
+  Repository::Simple::Engine::MyEngine->new(@args);
 
 This interface doesn't define anything specific regarding this arguments. Though, for consistency with the built-in engines, you may want to use named arguments.
 
@@ -100,14 +100,14 @@ There is a property at the given path, C<$path>.
 
 =back
 
-These can be imported from the L<Content::Repository::Engine> package:
+These can be imported from the L<Repository::Simple::Engine> package:
 
-  use Content::Repository::Engine qw( 
+  use Repository::Simple::Engine qw( 
       $NOT_EXISTS $NODE_EXISTS $PROPERTY_EXISTS 
   );
 
   # OR
-  use Content::Repository::Engine qw( :exists_constants );
+  use Repository::Simple::Engine qw( :exists_constants );
 
 =cut
 
@@ -117,7 +117,7 @@ sub path_exists {
 
 =item $node_type = $engine-E<gt>node_type_named($type_name)
 
-Given a node type name, this method returns an instance of L<Content::Repository::Type::Node> for the matching node type or C<undef> if no node type by the given name exists.
+Given a node type name, this method returns an instance of L<Repository::Simple::Type::Node> for the matching node type or C<undef> if no node type by the given name exists.
 
 =cut
 
@@ -127,7 +127,7 @@ sub node_type_named {
 
 =item $property_type = $engine-E<gt>property_type_named($type_name)
 
-Given a property type name, this method returns an instance of L<Content::Repository::Type::Property> for the matching property type or C<undef> if no property type by the given name exists.
+Given a property type name, this method returns an instance of L<Repository::Simple::Type::Property> for the matching property type or C<undef> if no property type by the given name exists.
 
 =cut
 
@@ -151,7 +151,7 @@ sub nodes_in {
 
 Given a path, this method should return all the child properties of the node at the given path or an empty list if the node found has no children. If the given path itself does not exist, the method must die.
 
-The properties returned should be returned each as a hash. The keys of this hash are the property names and the values are scalar values tied to L<Content::Repository::Value>.
+The properties returned should be returned each as a hash. The keys of this hash are the property names and the values are scalar values tied to L<Repository::Simple::Value>.
 
 =cut
 
@@ -161,7 +161,7 @@ sub properties_in {
 
 =item $node_type = $engine-E<gt>node_type_of($path)
 
-Given a path, this method should return the L<Content::Repository::Type::Node> object for the node at that path. If there is no node at that path, then the method must die.
+Given a path, this method should return the L<Repository::Simple::Type::Node> object for the node at that path. If there is no node at that path, then the method must die.
 
 =cut
 
@@ -171,7 +171,7 @@ sub node_type_of {
 
 =item $property_type = $engine-E<gt>property_type_of($path)
 
-Return the property type of the given class via a L<Content::Repository::Type::Property> instance. If there is no node at that path, then the method must die.
+Return the property type of the given class via a L<Repository::Simple::Type::Property> instance. If there is no node at that path, then the method must die.
 
 =cut
 
@@ -1002,7 +1002,7 @@ sub get_handle {
 
 =head1 SEE ALSO
 
-L<Content::Repository>
+L<Repository::Simple>
 
 =head1 AUTHOR
 

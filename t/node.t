@@ -5,23 +5,23 @@ use warnings;
 
 use Test::More tests => 33;
 
-use_ok('Content::Repository');
+use_ok('Repository::Simple');
 
-my $repository = Content::Repository->attach(
+my $repository = Repository::Simple->attach(
     FileSystem => root => 't/root',
 );
 ok($repository, 'repository');
 
 my $root_node = $repository->root_node;
 ok($root_node, 'root_node');
-isa_ok($root_node, 'Content::Repository::Node', 'root_node isa node');
+isa_ok($root_node, 'Repository::Simple::Node', 'root_node isa node');
 
 ok($root_node->repository);
-isa_ok($root_node->repository, 'Content::Repository', 
+isa_ok($root_node->repository, 'Repository::Simple', 
     'node repository isa repository');
 
 ok($root_node->parent, 'parent');
-isa_ok($root_node->parent, 'Content::Repository::Node', 'parent isa node');
+isa_ok($root_node->parent, 'Repository::Simple::Node', 'parent isa node');
 is($root_node->parent->path, '/', '/ parent is /');
 
 is($root_node->name, '/', 'name');
@@ -55,5 +55,5 @@ ok(defined $properties{'fs:blocks'}, 'fs:blocks');
 
 my $node_type = $root_node->type;
 ok($node_type, 'type');
-isa_ok($node_type, 'Content::Repository::Type::Node', 'type is node type');
+isa_ok($node_type, 'Repository::Simple::Type::Node', 'type is node type');
 is($node_type->name, 'fs:directory', 'node type is fs:directory');

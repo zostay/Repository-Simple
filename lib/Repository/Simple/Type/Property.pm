@@ -1,4 +1,4 @@
-package Content::Repository::Type::Property;
+package Repository::Simple::Type::Property;
 
 use strict;
 use warnings;
@@ -7,12 +7,12 @@ use Carp;
 
 our $VERSION = '0.01';
 
-use Content::Repository::Type::Value::Scalar;
+use Repository::Simple::Type::Value::Scalar;
 use Scalar::Util qw( weaken );
 
 =head1 NAME
 
-Content::Repository::Type::Property - Types for content repository properties
+Repository::Simple::Type::Property - Types for content repository properties
 
 =head1 SYNOPSIS
 
@@ -39,7 +39,7 @@ Property types are used to determine information about what kind of information 
 
 =over
 
-=item $type = Content::Repository::Type::Property-E<gt>new(%args)
+=item $type = Repository::Simple::Type::Property-E<gt>new(%args)
 
 Creates a new property type with the given arguments, C<%args>. 
 
@@ -75,9 +75,9 @@ By default, this value is false.
 
 =item value_type
 
-This property should be set to an instance of L<Content::Repository::Type::Value> for the type of value that is stored in it.
+This property should be set to an instance of L<Repository::Simple::Type::Value> for the type of value that is stored in it.
 
-By default, this is set to an instance of L<Content::Repository::Type::Value::Scalar>.
+By default, this is set to an instance of L<Repository::Simple::Type::Value::Scalar>.
 
 =back
 
@@ -100,7 +100,7 @@ sub new {
     $args{auto_created} ||= 0;
     $args{updatable}    ||= 0;
     $args{removable}    ||= 0;
-    $args{value_type}   ||= Content::Repository::Type::Value::Scalar->new;
+    $args{value_type}   ||= Repository::Simple::Type::Value::Scalar->new;
 
     return bless \%args, $class;
 }

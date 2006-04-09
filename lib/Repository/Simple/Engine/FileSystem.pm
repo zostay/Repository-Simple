@@ -1,4 +1,4 @@
-package Content::Repository::Engine::FileSystem;
+package Repository::Simple::Engine::FileSystem;
 
 use strict;
 use warnings;
@@ -6,24 +6,24 @@ use warnings;
 our $VERSION = '0.01';
 
 use Carp;
-use Content::Repository::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
-use Content::Repository::Type::Node;
-use Content::Repository::Type::Property;
-use Content::Repository::Util qw( dirname basename );
+use Repository::Simple::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
+use Repository::Simple::Type::Node;
+use Repository::Simple::Type::Property;
+use Repository::Simple::Util qw( dirname basename );
 use File::Spec;
 use IO::Scalar;
 use Symbol;
 
-use base 'Content::Repository::Engine';
+use base 'Repository::Simple::Engine';
 
 =head1 NAME
 
-Content::Repository::Engine::FileSystem - Content repository in the real FS
+Repository::Simple::Engine::FileSystem - Content repository in the real FS
 
 =head1 SYNOPSIS
 
-  use Content::Repository;
-  my $fs = Content::Repository::Factory->('FileSystem', root => '/usr/local');
+  use Repository::Simple;
+  my $fs = Repository::Simple::Factory->('FileSystem', root => '/usr/local');
 
 =head1 DESCRIPTION
 
@@ -134,7 +134,7 @@ sub new {
 
     while (my ($name, $node_def) = each %node_type_defs) {
         $self->{node_types}{$name}
-            = Content::Repository::Type::Node->new(
+            = Repository::Simple::Type::Node->new(
                 engine => $self,
                 %$node_def,
             );
@@ -142,7 +142,7 @@ sub new {
 
     while (my ($name, $prop_def) = each %property_type_defs) {
         $self->{property_types}{$name}
-            = Content::Repository::Type::Property->new(
+            = Repository::Simple::Type::Property->new(
                 engine => $self,
                 %$prop_def,
             );

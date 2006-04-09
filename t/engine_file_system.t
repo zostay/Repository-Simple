@@ -5,15 +5,15 @@ use warnings;
 
 use Test::More tests => 279;
 
-use_ok('Content::Repository::Engine::FileSystem');
+use_ok('Repository::Simple::Engine::FileSystem');
 
-use Content::Repository::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS );
+use Repository::Simple::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS );
 
 # Test construction
-my $engine = Content::Repository::Engine::FileSystem->new(root => 't/root');
+my $engine = Repository::Simple::Engine::FileSystem->new(root => 't/root');
 ok($engine, 'new');
-isa_ok($engine, 'Content::Repository::Engine', 'engine isa engine');
-isa_ok($engine, 'Content::Repository::Engine::FileSystem', 
+isa_ok($engine, 'Repository::Simple::Engine', 'engine isa engine');
+isa_ok($engine, 'Repository::Simple::Engine::FileSystem', 
     'engine isa file system');
 
 # Test methods
@@ -33,7 +33,7 @@ can_ok($engine, qw(
 # Test fs:object node type
 my $fs_object = $engine->node_type_named('fs:object');
 ok($fs_object, 'fs:object');
-isa_ok($fs_object, 'Content::Repository::Type::Node', 
+isa_ok($fs_object, 'Repository::Simple::Type::Node', 
     'fs:object is a node type');
 is($fs_object->name, 'fs:object', 'fs:object name');
 is_deeply([ $fs_object->super_types ], [ ], 'fs:object isa [ ]');
@@ -63,7 +63,7 @@ undef $fs_object;
 # Test fs:file node type
 my $fs_file = $engine->node_type_named('fs:file');
 ok($fs_file, 'fs:file');
-isa_ok($fs_file, 'Content::Repository::Type::Node', 'fs:file isa node type');
+isa_ok($fs_file, 'Repository::Simple::Type::Node', 'fs:file isa node type');
 is($fs_file->name, 'fs:file', 'fs:file name');
 is_deeply([ $fs_file->super_types ], [ 'fs:object' ], 'fs:file super_types');
 is_deeply({ $fs_file->node_types }, { }, 'fs:file node_types');
@@ -93,7 +93,7 @@ undef $fs_file;
 # Test fs:directory node type
 my $fs_directory = $engine->node_type_named('fs:directory');
 ok($fs_directory, 'fs:directory');
-isa_ok($fs_directory, 'Content::Repository::Type::Node', 'fs:directory isa');
+isa_ok($fs_directory, 'Repository::Simple::Type::Node', 'fs:directory isa');
 is($fs_directory->name, 'fs:directory', 'fs:directory name');
 is_deeply([ $fs_directory->super_types ], [ 'fs:object' ], 
     'fs:directory super_types');
@@ -127,7 +127,7 @@ undef $fs_directory;
 # Test fs:scalar property type
 my $fs_scalar = $engine->property_type_named('fs:scalar');
 ok($fs_scalar, 'fs:scalar');
-isa_ok($fs_scalar, 'Content::Repository::Type::Property', 'fs:scalar isa');
+isa_ok($fs_scalar, 'Repository::Simple::Type::Property', 'fs:scalar isa');
 is($fs_scalar->name, 'fs:scalar', 'fs:scalar name');
 is($fs_scalar->value_type->name, 'rs:scalar', 'fs:scalar value_type');
 ok($fs_scalar->auto_created, 'fs:scalar auto_created');
@@ -138,7 +138,7 @@ undef $fs_scalar;
 # Test fs:scalar-static property type
 my $fs_static_scalar = $engine->property_type_named('fs:scalar-static');
 ok($fs_static_scalar, 'fs:scalar-static');
-isa_ok($fs_static_scalar, 'Content::Repository::Type::Property', 
+isa_ok($fs_static_scalar, 'Repository::Simple::Type::Property', 
     'fs:scalar-static isa');
 is($fs_static_scalar->name, 'fs:scalar-static', 'fs:scalar-static name');
 is($fs_static_scalar->value_type->name, 'rs:scalar', 
@@ -151,7 +151,7 @@ undef $fs_static_scalar;
 # Test fs:handle property type
 my $fs_handle = $engine->property_type_named('fs:handle');
 ok($fs_handle, 'fs:handle');
-isa_ok($fs_handle, 'Content::Repository::Type::Property', 'fs:handle isa');
+isa_ok($fs_handle, 'Repository::Simple::Type::Property', 'fs:handle isa');
 is($fs_handle->name, 'fs:handle', 'fs:handle name');
 is($fs_handle->value_type->name, 'rs:scalar', 'fs:handle value_type');
 ok($fs_handle->auto_created, 'fs:handle auto_created');

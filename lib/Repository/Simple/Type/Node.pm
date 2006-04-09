@@ -1,4 +1,4 @@
-package Content::Repository::Type::Node;
+package Repository::Simple::Type::Node;
 
 use strict;
 use warnings;
@@ -6,12 +6,12 @@ use warnings;
 our $VERSION = '0.01';
 
 use Carp;
-use Content::Repository::Util qw( dirname );
+use Repository::Simple::Util qw( dirname );
 use Scalar::Util qw( weaken );
 
 =head1 NAME
 
-Content::Repository::Type::Node - Types for content repository nodes
+Repository::Simple::Type::Node - Types for content repository nodes
 
 =head1 SYNOPSIS
 
@@ -43,7 +43,7 @@ Node types are used to determine information about what kind of information is e
 
 =over
 
-=item $type = Content::Repository::Type::Node-E<gt>new(%args)
+=item $type = Repository::Simple::Type::Node-E<gt>new(%args)
 
 Create as a new node type with the given arguments, C<%args>.
 

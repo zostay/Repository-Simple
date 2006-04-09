@@ -1,20 +1,20 @@
-package Content::Repository::Property;
+package Repository::Simple::Property;
 
 use strict;
 use warnings;
 
 our $VERSION = '0.01';
 
-use Content::Repository::Util qw( normalize_path );
-use Content::Repository::Value;
+use Repository::Simple::Util qw( normalize_path );
+use Repository::Simple::Value;
 
 =head1 NAME
 
-Content::Repository::Property - Content repository property information
+Repository::Simple::Property - Content repository property information
 
 =head1 SYNOPSIS
 
-See L<Content::Repository::Node>.
+See L<Repository::Simple::Node>.
 
 =head1 DESCRIPTION
 
@@ -22,11 +22,11 @@ Each instance of this class represents a single property of a node.
 
 To retrieve a property instance, do not construct the object directly. Rather, use the methods associated with a node to retrieve the properties associated with that node.
 
-Each property has a parent (node), a name, a value, and a type. The key is non-empty string identifying the property. The value is a valid value according to the property type. The type is an instance of L<Content::Repository::Type::Property>. If a property value is set to C<undef>, this is the same as deleting the property from the parent node.
+Each property has a parent (node), a name, a value, and a type. The key is non-empty string identifying the property. The value is a valid value according to the property type. The type is an instance of L<Repository::Simple::Type::Property>. If a property value is set to C<undef>, this is the same as deleting the property from the parent node.
 
 =cut
 
-# $property = Content::Repository::Property->new($node, $name, $value)
+# $property = Repository::Simple::Property->new($node, $name, $value)
 #
 # Create a new property object.
 sub new {
@@ -79,12 +79,12 @@ Retrieve the value stored in the property.
 
 sub value {
     my $self = shift;
-    return Content::Repository::Value->new($self->engine, $self->path);
+    return Repository::Simple::Value->new($self->engine, $self->path);
 }
 
 =item $type = $self-E<gt>type
 
-Retrieve the L<Content::Repository::Type::Property> used to validate and store values for this property.
+Retrieve the L<Repository::Simple::Type::Property> used to validate and store values for this property.
 
 =cut
 

@@ -5,4 +5,4 @@ use warnings;
 
 use Test::More tests => 1;
 
-use_ok('Content::Repository');
+use_ok('Repository::Simple');

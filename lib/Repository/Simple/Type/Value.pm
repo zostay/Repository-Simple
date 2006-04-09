@@ -1,4 +1,4 @@
-package Content::Repository::Type::Value;
+package Repository::Simple::Type::Value;
 
 use strict;
 use warnings;
@@ -24,14 +24,14 @@ Readonly our $HANDLE_TYPE  => 'HANDLE';
 
 =head1 NAME
 
-Content::Repository::Type::Value - Abstract base class for value types
+Repository::Simple::Type::Value - Abstract base class for value types
 
 =head1 SYNOPSIS
 
-  package Content::Repository::Type::Value::MyValueType;
+  package Repository::Simple::Type::Value::MyValueType;
 
-  use Content::Repository::Type::Value qw( $STRING_TYPE );
-  use base qw( Content::Repository::Type::Value );
+  use Repository::Simple::Type::Value qw( $STRING_TYPE );
+  use base qw( Repository::Simple::Type::Value );
 
   sub name { 
       return 'my:valueType'; 
@@ -64,7 +64,7 @@ Content::Repository::Type::Value - Abstract base class for value types
 
 =head1 DESCRIPTION
 
-If you are just a casual user of L<Content::Repository>, then the nature of this class isn't a concern. However, if you want to extend the functionality of L<Content::Repository>, then you may be interested in this class.
+If you are just a casual user of L<Repository::Simple>, then the nature of this class isn't a concern. However, if you want to extend the functionality of L<Repository::Simple>, then you may be interested in this class.
 
 To create a value type, subclass this class and implement the various methods as appropriate. Below are listed the expected inputs/outputs for each method and the nature of the default implementation, if one is provided.
 
@@ -72,7 +72,7 @@ To create a value type, subclass this class and implement the various methods as
 
 =over
 
-=item $value_type = Content::Repository::Type::Value-E<gt>new(@args)
+=item $value_type = Repository::Simple::Type::Value-E<gt>new(@args)
 
 Your type should provide a well-documented constructor.
 
@@ -90,10 +90,10 @@ The value returned, C<$type>, represents the underlying storage mechanism requir
 
 Each of the following constants can be imported from this package:
 
-  use Content::Repository::Type::Value qw( $SCALAR_TYPE );
+  use Repository::Simple::Type::Value qw( $SCALAR_TYPE );
 
   # OR, to get all of them:
-  use Content::Repository::Type::Value qw( :type_constants );
+  use Repository::Simple::Type::Value qw( :type_constants );
 
 The constants have the following meanings:
 

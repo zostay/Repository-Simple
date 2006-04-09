@@ -5,9 +5,9 @@ use warnings;
 
 use Test::More tests => 21;
 
-use_ok('Content::Repository');
+use_ok('Repository::Simple');
 
-my $repository = Content::Repository->attach(
+my $repository = Repository::Simple->attach(
     FileSystem => root => 't/root',
 );
 ok($repository);

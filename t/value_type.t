@@ -5,9 +5,9 @@ use warnings;
 
 use Test::More tests => 8;
 
-use_ok('Content::Repository');
+use_ok('Repository::Simple');
 
-my $repository = Content::Repository->attach(
+my $repository = Repository::Simple->attach(
     FileSystem => root => 't/root',
 );
 ok($repository);
@@ -24,5 +24,5 @@ ok($property_type);
 
 my $value_type = $property_type->value_type;
 ok($value_type);
-isa_ok($value_type, 'Content::Repository::Type::Value::Scalar');
+isa_ok($value_type, 'Repository::Simple::Type::Value::Scalar');
 is($value_type->name, 'rs:scalar');

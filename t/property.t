@@ -5,9 +5,9 @@ use warnings;
 
 use Test::More tests => 11;
 
-use_ok('Content::Repository');
+use_ok('Repository::Simple');
 
-my $repository = Content::Repository->attach(
+my $repository = Repository::Simple->attach(
     FileSystem => root => 't/root',
 );
 ok($repository);
@@ -28,9 +28,9 @@ is($fs_uid->path, '/fs:uid');
 
 my $value = $fs_uid->value;
 ok($value);
-isa_ok($value, 'Content::Repository::Value');
+isa_ok($value, 'Repository::Simple::Value');
 
 my $property_type = $fs_uid->type;
 ok($property_type);
-isa_ok($property_type, 'Content::Repository::Type::Property');
+isa_ok($property_type, 'Repository::Simple::Type::Property');
 

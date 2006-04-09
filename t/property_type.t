@@ -5,9 +5,9 @@ use warnings;
 
 use Test::More tests => 12;
 
-use_ok('Content::Repository');
+use_ok('Repository::Simple');
 
-my $repository = Content::Repository->attach(
+my $repository = Repository::Simple->attach(
     FileSystem => root => 't/root',
 );
 ok($repository);
@@ -21,7 +21,7 @@ ok($node_type);
 my %properties = $node_type->property_types;
 my $fs_uid = $repository->property_type($properties{'fs:uid'});
 ok($fs_uid);
-isa_ok($fs_uid, 'Content::Repository::Type::Property');
+isa_ok($fs_uid, 'Repository::Simple::Type::Property');
 
 is($fs_uid->name, 'fs:scalar');
 
@@ -31,4 +31,4 @@ ok(!$fs_uid->removable);
 
 my $value_type = $fs_uid->value_type;
 ok($value_type);
-isa_ok($value_type, 'Content::Repository::Type::Value');
+isa_ok($value_type, 'Repository::Simple::Type::Value');

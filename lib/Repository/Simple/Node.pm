@@ -1,22 +1,22 @@
-package Content::Repository::Node;
+package Repository::Simple::Node;
 
 use strict;
 use warnings;
 
-use Content::Repository::Property;
-use Content::Repository::Util qw( dirname normalize_path );
+use Repository::Simple::Property;
+use Repository::Simple::Util qw( dirname normalize_path );
 
 our $VERSION = '0.01';
 
 =head1 NAME
 
-Content::Repository::Node - Content repository node information
+Repository::Simple::Node - Content repository node information
 
 =head1 SYNOPSIS
 
-  use Content::Repository;
+  use Repository::Simple;
 
-  my $repository = Content::Repository::Factory->connect(
+  my $repository = Repository::Simple::Factory->connect(
       FileSystem => { root => '/var/db/cr' }
   );
 
@@ -41,11 +41,11 @@ Content::Repository::Node - Content repository node information
 
 Each instance of this class describes a node in a repository. A node is basically a unit of information described by a path, which may have zero or more additional properties assigned to it.
 
-To retrieve an instance of this type, you never construct this object directly. Instead, use one of the node access methods in L<Content::Repository>.
+To retrieve an instance of this type, you never construct this object directly. Instead, use one of the node access methods in L<Repository::Simple>.
 
 =cut
 
-# $node = Content::Repository::Node->new($repository, $path)
+# $node = Repository::Simple::Node->new($repository, $path)
 #
 # Create a new node object.
 #
@@ -64,7 +64,7 @@ sub new {
 
 =item $repository = $node-E<gt>repository
 
-Returns the L<Content::Repository> object to which this node belongs.
+Returns the L<Repository::Simple> object to which this node belongs.
 
 =cut
 
@@ -83,7 +83,7 @@ If you consider time travel, you may wish to stop yourself before you think too 
 
 sub parent {
     my $self = shift;
-    return Content::Repository::Node->new(
+    return Repository::Simple::Node->new(
         $self->repository, 
         dirname($self->path),
     );
@@ -140,7 +140,7 @@ sub nodes {
     my ($self) = @_;
     return 
         map { 
-            Content::Repository::Node->new(
+            Repository::Simple::Node->new(
                 $self->{repository}, 
                 normalize_path($self->{path}, $_),
             ) 
@@ -156,13 +156,13 @@ Returns all the proeprties of this node.
 sub properties {
     my ($self) = @_;
     return 
-        map { Content::Repository::Property->new($self, $_) } 
+        map { Repository::Simple::Property->new($self, $_) } 
             $self->{repository}->engine->properties_in($self->{path});
 }
 
 =item $type = $node-E<gt>type
 
-Returns the L<Content::Repository::Type::Node> object describing the node.
+Returns the L<Repository::Simple::Type::Node> object describing the node.
 
 =cut
 
