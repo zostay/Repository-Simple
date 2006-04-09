@@ -6,14 +6,13 @@ use warnings;
 our $VERSION = '0.01';
 
 use Carp;
-use Content::Repository::NodeType;
-use Content::Repository::PropertyType;
-#use File::Copy ();
-#use File::Copy::Recursive;
-#use File::Glob ();
-#use File::Path ();
+use Content::Repository::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
+use Content::Repository::Type::Node;
+use Content::Repository::Type::Property;
+use Content::Repository::Util qw( dirname basename );
 use File::Spec;
-#use FileHandle;
+use IO::Scalar;
+use Symbol;
 
 use base 'Content::Repository::Engine';
 
@@ -36,49 +35,86 @@ This file system module accepts only a single option, C<root>. If not given, the
 
 =cut
 
-my %node_types = (
-    'fs:object' => Content::Repository::NodeType->new(
+my %node_type_defs = (
+    'fs:object' => {
         name     => 'fs:object',
-        abstract => 1,
-        child_properties => {
-            'fs:dev'     => 'fs:scalar',
-            'fs:ino'     => 'fs:scalar',
+        property_types => {
+            'fs:dev'     => 'fs:scalar-static',
+            'fs:ino'     => 'fs:scalar-static',
             'fs:mode'    => 'fs:scalar',
-            'fs:nlink'   => 'fs:scalar',
+            'fs:nlink'   => 'fs:scalar-static',
             'fs:uid'     => 'fs:scalar',
             'fs:gid'     => 'fs:scalar',
-            'fs:rdev'    => 'fs:scalar',
-            'fs:size'    => 'fs:scalar',
+            'fs:rdev'    => 'fs:scalar-static',
+            'fs:size'    => 'fs:scalar-static',
             'fs:atime'   => 'fs:scalar',
             'fs:mtime'   => 'fs:scalar',
             'fs:ctime'   => 'fs:scalar',
-            'fs:blksize' => 'fs:scalar',
-            'fs:blocks'  => 'fs:scalar',
+            'fs:blksize' => 'fs:scalar-static',
+            'fs:blocks'  => 'fs:scalar-static',
         },
-    ),
+        updatable => 1,
+        removable => 1,
+    },
 
-    'fs:file' => Content::Repository::NodeType->new(
-        name       => 'fs:file',
-        supertypes => [ qw( fs:object ) ],
-        child_properties => {
-            'fs:content' => 'fs:scalar',
+    'fs:file' => {
+        name        => 'fs:file',
+        super_types => [ qw( fs:object ) ],
+        property_types => {
+            'fs:content' => 'fs:handle',
         },
-    ),
+        updatable => 1,
+        removable => 1,
+    },
 
-    'fs:directory' => Content::Repository::NodeType->new(
-        name       => 'fs:directory',
-        supertypes => [ qw( fs:object ) ],
-        child_nodes => {
-            '*' => 'fs:object',
+    'fs:directory' => {
+        name        => 'fs:directory',
+        super_types => [ qw( fs:object ) ],
+        node_types => {
+            '*' => [ 'fs:object' ],
         },
-    ),
+        updatable => 1,
+        removable => 1,
+    },
 );
 
-my %property_types = (
-    'fs:scalar' => Content::Repository::PropertyType->new(
-        name     => 'fs:scalar',
-        required => 1,
-    ),
+my %property_type_defs = (
+    'fs:scalar' => {
+        name         => 'fs:scalar',
+        auto_created => 1,
+        updatable    => 1,
+        removable    => 0,
+    },
+
+    'fs:scalar-static' => {
+        name         => 'fs:scalar-static',
+        auto_created => 1,
+        updatable    => 0,
+        removable    => 0,
+    },
+    
+    'fs:handle' => {
+        name         => 'fs:handle',
+        auto_created => 1,
+        updatable    => 0,
+        removable    => 0,
+    },
+);
+
+my %stat_names = (
+    'fs:dev'     => 0,
+    'fs:ino'     => 1,
+    'fs:mode'    => 2,
+    'fs:nlink'   => 3,
+    'fs:uid'     => 4,
+    'fs:gid'     => 5,
+    'fs:rdev'    => 6,
+    'fs:size'    => 7,
+    'fs:atime'   => 8,
+    'fs:mtime'   => 9,
+    'fs:ctime'   => 10,
+    'fs:blksize' => 11,
+    'fs:blocks'  => 12,
 );
 
 sub new {
@@ -92,570 +128,245 @@ sub new {
 	-e $root or croak "Sorry, root $root does not exist!";
 	-d $root or croak "Sorry, root $root is not a directory!";
 
-	return bless {
+	my $self = bless {
 		fs_root  => $root,
 	}, $class;
+
+    while (my ($name, $node_def) = each %node_type_defs) {
+        $self->{node_types}{$name}
+            = Content::Repository::Type::Node->new(
+                engine => $self,
+                %$node_def,
+            );
+    }
+
+    while (my ($name, $prop_def) = each %property_type_defs) {
+        $self->{property_types}{$name}
+            = Content::Repository::Type::Property->new(
+                engine => $self,
+                %$prop_def,
+            );
+    }
+
+    return $self;
 }
 
-sub fetch_node_type_named {
+sub node_type_named {
     my ($self, $type_name) = @_;
-    return $node_types{ $type_name };
+    return $self->{node_types}{ $type_name };
 }
 
-sub fetch_property_type_named {
+sub property_type_named {
     my ($self, $type_name) = @_;
-    return $property_types{ $type_name };
+    return $self->{property_types}{ $type_name };
 }
 
-sub fetch_nodes {
+sub nodes_in {
     my ($self, $path) = @_;
 
-    my $real_path = File::Spec->catfile($self->{fs_root}, $path);
+    my $real_path = $self->real_path($path);
     
-    if (!-e $real_path) {
-        croak qq(no node found at path "$path");
-    }
+    $self->check_real_path($real_path, $path);
 
     if (!-d $real_path) {
         return ();
     }
 
-    opendir DIR, $real_path or croak qq(failed to readdir for path "$path");
-    my @dirs = <DIR>;
-    closedir DIR;
+    my $handle = gensym;
+    opendir $handle, $real_path 
+        or croak qq(failed to readdir for path "$path");
+    my @dirs = grep { $_ !~ /^\.\.?$/ } readdir $handle;
+    closedir $handle;
 
-    return map { "$path/$_" } @dirs;
+    return @dirs;
 }
 
-sub fetch_properties {
+sub properties_in {
     my ($self, $path) = @_;
 
-    my $real_path = File::Spec->catfile($self->{fs_root}, $path);
+    my $real_path = $self->real_path($path);
 
-    if (!-e $real_path) {
-        croak qq(no node found at path "$path");
-    }
+    $self->check_real_path($real_path, $path);
 
-    my %properties;
-    @properties{ qw( 
-        fs:dev fs:ino fs:mode fs:nlink fs:uid fs:gid fs:rdev fs:size
-        fs:atime fs:mtime fs:ctime fs:blksize fs:blocks
-    ) } = stat(_);
+    my @properties = keys %stat_names;
 
     if (-f $real_path) {
-        open FILE, $real_path or croak qq(failed to read file at path "$path");
-        $properties{'fs:content'} = join '', <FILE>; # XXX insane!
-        close FILE;
+        push @properties, 'fs:content';
     }
 
-    foreach (keys %properties) {
-        tie $_, 'Content::Respository::Value', $property_types{'fs:scalar'}, $_;
-    }
-
-    return %properties;
+    return @properties;
 }
 
-sub fetch_node_type_of {
+sub node_type_of {
     my ($self, $path) = @_;
 
-    my $real_path = File::Spec->catfile($self->{fs_root}, $path);
+    my $real_path = $self->real_path($path);
+
+    $self->check_real_path($real_path, $path);
+
+    if (-d $real_path) {
+        return $self->{node_types}{'fs:directory'};
+    }
+
+    elsif (-f $real_path) {
+        return $self->{node_types}{'fs:file'};
+    }
+
+    else {
+        return $self->{node_types}{'fs:object'};
+    }
+}
+
+sub property_type_of {
+    my ($self, $path) = @_;
+
+    my $basename = basename($path);
+    my $dirname  = dirname($path);
+
+    my $node_type = $self->node_type_of($dirname);
+    my %property_types = $node_type->property_types;
+
+    if (!defined $property_types{$basename}) {
+        croak qq(no property named "$basename" for node "$dirname");
+    }
+
+    return $self->property_type_named($property_types{$basename});
+}
+
+sub path_exists {
+	my ($self, $path) = @_;
+
+    my $dirname  = dirname($path);
+    my $basename = basename($path);
+
+    my $real_path = $self->real_path($path);
+
+    # If it is a node path, just find if it exists
+    return $NODE_EXISTS if -e $real_path;
+
+    # Next, check to see if it's a property
+    my $property = $basename =~ m[
+        fs:
+            (?: dev     | ino     | mode  | nlink 
+              | uid     | gid     | rdev  | size
+              | atime   | mtime   | ctime | blksize 
+              | blocks  | content )
+    ]x;
+
+    if ($property) {
+        $real_path = $self->real_path($dirname);
+
+        # fs:content exists only if the path is a file, the other properties
+        # exist for both files or directories
+        if ($basename eq 'fs:content') {
+            return -f $real_path ? $PROPERTY_EXISTS : $NOT_EXISTS;
+        }
+
+        else {
+            return -e $real_path ? $PROPERTY_EXISTS : $NOT_EXISTS;
+        }
+    }
+
+    # Doesn't exist
+    return $NOT_EXISTS;
+}
+
+sub _get_scalar {
+    my ($self, $file, $property) = @_;
+
+    return (stat $file)[ $stat_names{ $property } ];
+}
+
+sub _get_handle {
+    my ($self, $dirname, $file, $mode) = @_;
+
+    my $handle = gensym;
+    open $handle, $mode, $file
+        or croak qq(failed to read "fs:content" property of node ),
+                 qq("$dirname");
+
+    return $handle;
+}
+
+sub get_scalar {
+    my ($self, $path) = @_;
+
+    my $basename = basename($path);
+    my $dirname  = dirname($path);
+
+    my $real_path = $self->real_path($dirname);
+
+    $self->check_real_path($real_path, $dirname);
+
+    if ($basename eq 'fs:content') {
+        unless (-f $real_path) {
+            croak qq(no "fs:content" property associated with node at ),
+                  qq("$dirname");
+        }
+
+        my $handle = $self->_get_handle($dirname, $real_path, '<');
+        my $scalar = join '', <$handle>;
+        close $handle;
+
+        return $scalar;
+    }
+
+    elsif (defined $stat_names{ $basename }) {
+        return $self->_get_scalar($real_path, $basename);
+    }
+
+    else {
+        croak qq(no "$basename" property associated with node at "$dirname");
+    }
+}
+
+sub get_handle {
+    my ($self, $path, $mode) = @_;
+
+    $mode ||= '<';
+
+    if ($mode ne '<') {
+        croak qq(invalid mode "$mode" given);
+    }
+
+    my $basename = basename($path);
+    my $dirname  = dirname($path);
+
+    my $real_path = $self->real_path($dirname);
+
+    $self->check_real_path($real_path, $dirname);
+
+    if ($basename eq 'fs:content') {
+        if (!-f $real_path) {
+            croak qq(no "fs:content" property associated with node at ),
+                  qq("$dirname");
+        }
+
+        return $self->_get_handle($dirname, $real_path, '<');
+    }
+
+    elsif (defined $stat_names{ $basename }) {
+        my $scalar = $self->_get_scalar($real_path, $basename);
+        return IO::Scalar->new(\$scalar);
+    }
+
+    else {
+        croak qq(no "$basename" property associated with node at "$dirname");
+    }
+}
+
+sub real_path {
+    my ($self, $fs_path) = @_;
+
+    return File::Spec->catfile($self->{fs_root}, $fs_path);
+}
+
+sub check_real_path {
+    my ($self, $real_path, $path) = @_;
 
     if (!-e $real_path) {
         croak qq(no file found at path "$path");
     }
-
-    if (-d $real_path) {
-        return $node_types{'fs:directory'};
-    }
-
-    else {
-        return $node_types{'fs:file'};
-    }
-}
-
-sub is_valid {
-	my $self = shift;
-	return -e $self->{fullpath};
-}
-
-sub root {
-	my $self = shift;
-
-	return bless {
-		fs_root  => $self->{fs_root},
-		path     => '/',
-		fullpath => $self->{fs_root},
-	}, ref $self;
-}
-
-sub exists {
-	my $self = shift;
-	my $path = shift || $self->path;
-
-	return -e $self->normalize_real_path($path);
-}
-
-sub lookup {
-	my $self = shift;
-	my $path = shift;
-
-	my $abspath = $self->normalize_path($path);
-	my $fullpath = $self->normalize_real_path($path);
-
-	return undef
-		unless -e $fullpath;
-
-	return bless {
-		fs_root  => $self->{fs_root},
-		path     => $abspath,
-		fullpath => $fullpath,
-	}, ref $self;
-}
-
-sub glob {
-	my $self = shift;
-	my $glob = shift;
-
-	my $absglob = $self->normalize_path($glob);
-
-	my $fullglob = $self->normalize_real_path($absglob);
-
-	return sort map {
-		s/^$self->{fs_root}//;
-		bless {
-			fs_root  => $self->{fs_root},
-			path     => $self->normalize_path($_),
-			fullpath => $self->normalize_real_path($_),
-		}, ref $self
-	} File::Glob::bsd_glob($fullglob);
-}
-
-sub properties { 
-	my $self = shift;
-
-	return qw/
-		basename
-		dirname
-		path
-		object_type
-		dev
-		ino
-		mode
-		nlink
-		uid
-		gid
-		rdev
-		size
-		atime
-		mtime
-		ctime
-		blksize
-		blocks
-	/;
-}
-
-sub settable_properties { 
-	my $self = shift;
-
-	return qw/
-		mode
-		uid
-		gid
-		atime
-		mtime
-	/;
-}
-
-sub _stat {
-	my $self = shift;
-
-	my @stat = stat $self->{fullpath};
-	return \@stat;
-}
-
-sub get_property {
-	my $self = shift;
-	local $_ = shift;
-
-	SWITCH: {
-		/^basename$/ && do {
-			return $self->basename_of_path($self->{path});
-		};
-		/^dirname$/  && do {
-			return $self->dirname_of_path($self->{path});
-		};
-		/^path$/     && do {
-			return $self->{path};
-		};
-		/^object_type$/ && do {
-			my $result = '';
-			$result .= 'd' if -d $self->{fullpath};
-			$result .= 'f' if -f $self->{fullpath};
-			return $result;
-		};
-		/^dev$/      && do {
-			return $self->_stat->[0];
-		};
-		/^ino$/      && do {
-			return $self->_stat->[1];
-		};
-		/^mode$/     && do {
-			return $self->_stat->[2];
-		};
-		/^nlink$/    && do {
-			return $self->_stat->[3];
-		};
-		/^uid$/      && do {
-			return $self->_stat->[4];
-		};
-		/^gid$/      && do {
-			return $self->_stat->[5];
-		};
-		/^rdev$/     && do {
-			return $self->_stat->[6];
-		};
-		/^size$/     && do {
-			return $self->_stat->[7];
-		};
-		/^atime$/    && do {
-			return $self->_stat->[8];
-		};
-		/^mtime$/    && do {
-			return $self->_stat->[9];
-		};
-		/^ctime$/    && do {
-			return $self->_stat->[10];
-		};
-		/^blksize$/  && do {
-			return $self->_stat->[11];
-		};
-		/^blocks$/   && do {
-			return $self->_stat->[12];
-		};
-		DEFAULT: {
-			return undef;
-		}
-	}
-}
-
-sub set_property {
-	my $self  = shift;
-	local $_  = shift;
-	my $value = shift;
-
-	SWITCH: {
-		/^mode$/ && do {
-			chmod $value, $self->{fullpath};
-			last SWITCH;
-		};
-		/^uid$/ && do {
-			chown $value, $self->get_property('gid'), $self->{fullpath};
-			last SWITCH;
-		};
-		/^gid$/ && do {
-			chown $self->get_property('uid'), $value, $self->{fullpath};
-			last SWITCH;
-		};
-		/^atime$/ && do {
-			utime $value, $self->get_property('mtime'), $self->{fullpath};
-			last SWITCH;
-		};
-		/^mtime$/ && do {
-			utime $self->get_property('atime'), $value, $self->{fullpath};
-			last SWITCH;
-		};
-		DEFAULT: {
-			croak "Cannot set unknown property '$_'";
-		}
-	}
-}
-
-sub is_creatable {
-	my $self = shift;
-	my $path = shift;
-	my $type = shift;
-
-	defined $type
-		or croak "No type argument given.";
-
-	return ($type eq 'f' || $type eq 'd') && !$self->exists($path);
-}
-
-sub create {
-	my $self = shift;
-	my $path = shift;
-	my $type = shift;
-
-	defined $type
-		or croak "Missing required argument 'type'.";
-
-	if ($type eq 'f') {	
-		my $fulldir = $self->dirname_of_path($self->normalize_real_path($path));
-
-		File::Path::mkpath($fulldir, 0);
-
-		my $abspath  = $self->normalize_path($path);
-		my $fullpath = $self->normalize_real_path($path);
-
-		my $fh = FileHandle->new(">$fullpath")
-			or croak "Cannot create file $abspath: $!";
-		close $fh;
-
-		return bless {
-			fs_root  => $self->{fs_root},
-			path     => $abspath,
-			fullpath => $fullpath,
-		}, ref $self;
-	} elsif ($type eq 'd') {
-		my $abspath  = $self->normalize_path($path);
-		my $fullpath = $self->normalize_real_path($path);
-
-		File::Path::mkpath($fullpath, 0);
-
-		-d $fullpath
-			or croak "Failed to create directory '$abspath'";
-
-		return bless {
-			fs_root  => $self->{fs_root},
-			path     => $abspath,
-			fullpath => $fullpath,
-		}, ref $self;
-	} else {
-		return undef;
-	}
-}
-
-sub rename {
-	my $self = shift;
-	my $name = shift;
-
-	croak "The 'name' argument must be a plan name, not a path. However, the given value ($name) contains a slash."
-		if $name =~ m#/#;
-
-	my $abspath  = $self->normalize_path($self->dirname.'/'.$name);
-	my $fullpath = $self->normalize_real_path($self->dirname.'/'.$name);
-
-	rename $self->{fullpath}, $fullpath;
-
-	$self->{path}     = $abspath;
-	$self->{fullpath} = $fullpath;
-
-	return $self;
-}
-
-sub move {
-	my $self  = shift;
-	my $to    = shift;
-	my $force = shift || 0;
-
-	UNIVERSAL::isa($to, ref $self)
-		or croak "Move failed; the '$to' object is not a '",ref $self,"'";
-
-	$to->{fs_root} eq $self->{fs_root}
-		or croak "Move failed; the '$to' object belongs to a different root.";
-
-	$to->is_valid
-		or croak "Move failed; the '$to' object is not valid.";
-	
-	$to->is_container
-		or croak "Move failed; the '$to' object is not a directory.";
-
-	defined $to->child($self->basename)
-		and croak "Move failed; the '$to/",$self->basename,"' object already exists.";	
-
-	if ($self->is_container) {
-		if ($force) {
-			$to->create($self->basename, 'd');
-			File::Copy::Recursive::dircopy($self->{fullpath}, $to->{fullpath}.'/'.$self->basename)
-				or croak "Move failed; dircopy failure to '$to'";
-			File::Path::rmtree($self->{fullpath});
-		} else {
-			croak "Move failed; cannot move a directory unless the 'force' argument is true.";
-		}
-	} else {
-		File::Copy::move($self->{fullpath}, $to->{fullpath});
-	}
-
-	my $name = $self->basename;
-
-	$self->{path}     = $self->normalize_path($to->path.'/'.$name);
-	$self->{fullpath} = $self->normalize_real_path($to->path.'/'.$name);
-
-	return $self;
-}
-
-sub copy {
-	my $self  = shift;
-	my $to    = shift;
-	my $force = shift || 0;
-
-	UNIVERSAL::isa($to, ref $self)
-		or croak "Copy failed; the '$to' object is not a '",ref $self,"'";
-
-	$to->{fs_root} eq $self->{fs_root}
-		or croak "Copy failed; the '$to' object belongs to a different root.";
-
-	$to->is_valid
-		or croak "Copy failed; the '$to' object is not valid.";
-	
-	$to->is_container
-		or croak "Copy failed; the '$to' object is not a directory.";
-
-	defined $to->child($self->basename, 'd')
-		and croak "Copy failed; the '$to/",$self->basename,"' object already exists.";	
-
-	if ($self->is_container) {
-		if ($force) {
-			$to->create($self->basename, 'd');
-			File::Copy::Recursive::dircopy($self->{fullpath}, $to->{fullpath}.'/'.$self->basename)
-				or croak "Copy failed; dircopy failure to '$to'";
-		} else {
-			croak "Copy failed; cannot copy a directory unless the 'force' argument is true.";
-		}
-	} else {
-		File::Copy::copy($self->{fullpath}, $to->{fullpath});
-	}
-
-	return bless {
-		fs_root  => $self->{fs_root},
-		path     => $self->normalize_path($to->path.'/'.$self->basename),
-		fullpath => $self->normalize_real_path($to->path.'/'.$self->basename),
-	}, ref $self;
-}
-
-sub remove {
-	my $self  = shift;
-	my $force = shift;
-
-	if (-d $self->{fullpath} && $force) {
-		File::Path::rmtree($self->{fullpath});
-	} elsif (-d $self->{fullpath} && $self->has_children) {
-		croak "Cannot delete directory with children unless force is true.";
-	} elsif (-d $self->{fullpath}) {
-		rmdir $self->{fullpath};
-	} else {
-		unlink $self->{fullpath};
-	}
-}
-
-sub is_readable {
-	my $self = shift;
-	return $self->has_content;
-}
-
-sub is_seekable {
-	my $self = shift;
-	# TODO This is naive. Seekability is a little less available than this
-	# would indicate.
-	return $self->has_content;
-}
-
-sub is_writable {
-	my $self = shift;
-	return $self->has_content;
-}
-
-sub is_appendable {
-	my $self = shift;
-	return $self->has_content;
-}
-
-sub open {
-	my $self   = shift;
-	my $access = shift;
-	return FileHandle->new($self->{fullpath}, $access)
-		or croak "Cannot open $self with access mode '$access': $!";
-}
-
-sub content {
-	my $self = shift;
-
-	my $fh = $self->open("r");
-	my @lines = <$fh>;
-	close $fh;
-
-	return wantarray ? @lines : join '', @lines;
-}
-
-sub has_children {
-	my $self = shift;
-
-	opendir DH, $self->{fullpath}
-		or croak "Cannot open directory $self for listing: $!";
-	my @dirs = grep !/^\.\.?$/, readdir DH;
-	closedir DH;
-
-	return @dirs ? 1 : '';
-}
-
-sub children_paths {
-	my $self = shift;
-
-	opendir DH, $self->{fullpath}
-		or croak "Cannot open directory $self for listing: $!";
-	my @paths = map { s/^$self->{fs_root}//; $_ } readdir DH;
-	closedir DH;
-
-	return @paths;
-}
-
-sub children {
-	my $self = shift;
-
-	opendir DH, $self->{fullpath}
-		or croak "Cannot open directory $self for listing: $!";
-	my @children = map {
-		if (/^\.\.?$/) {
-			()
-		} else {
-			bless {
-				fs_root  => $self->{fs_root},
-				path     => $self->normalize_path($_),
-				fullpath => $self->normalize_real_path($_),
-			}, ref $self;
-		}
-	} readdir DH;
-	closedir DH;
-
-	return @children;
-}
-
-sub child {
-	my $self = shift;
-	my $name = shift;
-
-	croak "Name given, '$name', is a path rather than a name (i.e., it contains a slash)." if $name =~ m#/#;
-
-	my $abspath  = $self->normalize_path($name);
-	my $fullpath = $self->normalize_real_path($name);
-
-	if (-e $fullpath) {
-		return bless {
-			fs_root  => $self->{fs_root},
-			path     => $abspath,
-			fullpath => $fullpath,
-		}, ref $self;
-	} else {
-		return undef;
-	}
-}
-
-# =item $real_path = $obj->normalize_real_path($messy_path)
-#
-# Like C<normalize_path>, except that it returns a real absolute path.
-#
-# =cut
-
-sub normalize_real_path {
-	my $self = shift;
-	my $path = shift;
-
-	my $abspath  = $self->normalize_path($path);
-	my $fullpath = File::Spec->canonpath(
-	   File::Spec->catfile($self->{fs_root}, $abspath)
-	);
-
-	return $fullpath;
 }
 
 =head1 SEE ALSO

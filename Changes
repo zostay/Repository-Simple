@@ -3,7 +3,7 @@
     * This is a fork of File::System called Content::Repository. As of this
       version, this is only an experiment. See the documentation in
       Content::Repository for goals.
-    * lib/File/System.pm: Renamed to lib/Content/Repository/Factory.pm
+    * lib/File/System.pm: Renamed to lib/Content/Repository.pm
 	* lib/Content/Repository/Factory.pm: Changed new() to attach(). Updated
 	  implementation and altered documentation.
     * lib/File/System/Object.pm: Renamed to lib/Content/Repository/Engine.pm
@@ -21,26 +21,50 @@
     * lib/File/System/Passthrough.pm: Renamed to
       lib/Content/Repository/Engine/Passthrough.pm
 	* lib/Content/Repository/Engine/Passthrough.pm: XXX
+    * lib/File/System/Util.pm: Added a utility library with some helpful
+      subroutines--useful both to the core and to engine implementations.
     * lib/File/System/Globber.PL: Renamed to
       lib/Content/Repository/Util/Globber.PL
     * lib/File/System/Test.pm: Renamed to lib/Content/Repository/Test.pm
-    * lib/Content/Repository.pm: Added as the new central module.
     * lib/Content/Repository/Property.pm: Added to represent property objects.
     * lib/Content/Repository/Node.pm: Added to represent node objects.
-    * lib/Content/Repository/PropertyType.pm: Added to represent property type
+    * lib/Content/Repository/Type.pod: Added to documented the different kinds
+      of type in the content repository system.
+    * lib/Content/Repository/Type/Property.pm: Added to represent property type
       objects.
-    * lib/Content/Repository/NodeType.pm: Added to represent node type objects.
+    * lib/Content/Repository/Type/Node.pm: Added to represent node type objects.
+    * lib/Content/Repository/Type/Value.pm: Added to represent value type
+      objects.
+    * lib/Content/Repository/Type/Value/Scalar.pm: Added to implement the most
+      generic value type.
     * lib/Content/Repository/Value.pm: Added this helper for storing and
       performing value checking, inflation, and deflation.
     * Build.PL: Rewrote to reflect the new package name.
 	* t/01_normalize_path.t, t/02_glob.t, t/03_real.t, t/04_table_basic.t,
 	  t/05_table_multimount.t, t/06_table_mount.t, t/07_layered.t,
 	  t/08_passthrough.t: Removed the old test files.
-	* t/01_use.t: Added a simple test for just "use Content::Repository".
-	* t/02_factory.t: Added tests for Content::Repository::Factory.
-	* t/03_repository.t: Added tests for Content::Repository.
-	* t/04_node.t: Added tests for Content::Repository::Node.
-	* t/05_node_type.t: Added tests for Content::Repository::NodeType.
+	* t/use.t: Added a simple test for just "use Content::Repository".
+	* t/factory.t: Added tests for Content::Repository::Factory.
+	* t/repository.t: Added tests for Content::Repository.
+	* t/node.t: Added tests for Content::Repository::Node.
+	* t/node_type.t: Added tests for Content::Repository::Type::Node.
+    * t/engine_dbi.t: Added a stub for tests of
+      Content::Repository::Engine::DBI.
+    * t/property.t: Added tests for Content::Repository::Property.
+    * t/engine_xml.t: Added a stub for tests of
+      Content::Repository::Engine::XML.
+    * t/property_type.t: Added tests for Content::Repository::Type::Property.
+    * t/engine_memory.t: Added a stub for tests of
+    * Content::Repository::Engine::Memory.
+    * t/engine_layered.t: Added a stub for tests of
+    * Content::Repository::Engine::Layer.
+    * t/engine.t: Added tests for Content::Repository::Engine.
+    * t/engine_file_system.t: Added tests for
+      Content::Repository::Engine::FileSystem.
+    * t/value.t: Added tests for Content::Repository::Value.
+    * t/engine_table.t: Added tests for Content::Repository::Engine::Table.
+	* t/root, t/root/foo, t/root/bar, t/root/baz, t/root/baz/qux: Added some
+	  files for testing upon.
 
 1.16    2005-12-03 16:34    Andrew Sterling Hanenkamp
 

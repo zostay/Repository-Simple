@@ -3,6 +3,9 @@ package Content::Repository::Node;
 use strict;
 use warnings;
 
+use Content::Repository::Property;
+use Content::Repository::Util qw( dirname normalize_path );
+
 our $VERSION = '0.01';
 
 =head1 NAME
@@ -70,6 +73,22 @@ sub repository {
     return $self->{repository};
 }
 
+=item $node = $type-E<gt>parent
+
+Fetch the node that is the parent of this node. This will always return a node, even for the root node. The root node is the parent of itself. 
+
+If you consider time travel, you may wish to stop yourself before you think too hard on the implications and gross yourself out.
+
+=cut
+
+sub parent {
+    my $self = shift;
+    return Content::Repository::Node->new(
+        $self->repository, 
+        dirname($self->path),
+    );
+}
+
 =item $name = $node-E<gt>name
 
 Fetch the name of the node. This will always be the last element of the node's path. That is, if the path of the node is:
@@ -89,6 +108,7 @@ sub name {
     return $self->{name} if $self->{name};
 
     # The name of the root node is '/'
+    my $path = $self->{path};
     if ($path eq '/') {
         return $self->{name} = '/';
     } 
@@ -119,8 +139,12 @@ Returns all the child nodes of this node.
 sub nodes {
     my ($self) = @_;
     return 
-        map { Content::Repository::Node->new($self->{repository}, $_) } 
-            $self->{repository}->engine->fetch_nodes($self->{path});
+        map { 
+            Content::Repository::Node->new(
+                $self->{repository}, 
+                normalize_path($self->{path}, $_),
+            ) 
+        } $self->{repository}->engine->nodes_in($self->{path});
 }
 
 =item @properties = $node-E<gt>properties
@@ -132,19 +156,19 @@ Returns all the proeprties of this node.
 sub properties {
     my ($self) = @_;
     return 
-        map { Content::Repository::Property->new($self, $_->[0], $_>[1]) }
-            $self->{repository}->engine->fetch_properties($self->{path});
+        map { Content::Repository::Property->new($self, $_) } 
+            $self->{repository}->engine->properties_in($self->{path});
 }
 
 =item $type = $node-E<gt>type
 
-Returns the L<Content::Repository::NodeType> object describing the node.
+Returns the L<Content::Repository::Type::Node> object describing the node.
 
 =cut
 
 sub type {
     my ($self) = @_;
-    return $self->{repository}->engine->fetch_node_type_of($self->{path});
+    return $self->{repository}->engine->node_type_of($self->{path});
 }
 
 =back

@@ -5,6 +5,20 @@ use warnings;
 
 our $VERSION = '0.01';
 
+use Readonly;
+
+require Exporter;
+
+our @ISA = qw( Exporter );
+
+our @EXPORT_OK = qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
+our %EXPORT_TAGS = ( exists_constants => \@EXPORT_OK );
+
+# Return values for path_exists()
+Readonly our $NODE_EXISTS     => 1;
+Readonly our $PROPERTY_EXISTS => 2;
+Readonly our $NOT_EXISTS      => 0;
+
 #use Carp;
 #use Content::Repository::Util::Globber;
 
@@ -58,29 +72,150 @@ This interface doesn't define anything specific regarding this arguments. Though
 
 This method must return an instance of the object upon which all the other methods may be called.
 
-=item $node_type = $engine-E<gt>fetch_node_type_named($type_name)
+=cut
 
-Given a node type name, this method returns an instance of L<Content::Repository::NodeType> for the matching node type or C<undef> if no node type by the given name exists.
+sub new {
+    my $class = shift;
 
-=item $property_type = $engine-E<gt>fetch_property_type_named($type_name)
+    return bless { @_ }, $class;
+}
 
-Given a property type name, this method returns an instance of L<Content::Repository::PropertyType> for the matching property type or C<undef> if no property type by the given name exists.
+=item $exists = $engine-E<gt>path_exists($path)
 
-=item @nodes = $engine-E<gt>fetch_nodes($path)
+Returns information regarding whether a given path refers to a node, a property, or nothing. The method must return one of the following values:
+
+=over
+
+=item C<$NOT_EXISTS>
+
+There is no node or property at the given path, C<$path>.
+
+=item C<$NODE_EXISTS>
+
+There is a node at the given path, C<$path>.
+
+=item C<$PROPERTY_EXISTS>
+
+There is a property at the given path, C<$path>.
+
+=back
+
+These can be imported from the L<Content::Repository::Engine> package:
+
+  use Content::Repository::Engine qw( 
+      $NOT_EXISTS $NODE_EXISTS $PROPERTY_EXISTS 
+  );
+
+  # OR
+  use Content::Repository::Engine qw( :exists_constants );
+
+=cut
+
+sub path_exists {
+    die 'path_exists() must be implemented in subclass';
+}
+
+=item $node_type = $engine-E<gt>node_type_named($type_name)
+
+Given a node type name, this method returns an instance of L<Content::Repository::Type::Node> for the matching node type or C<undef> if no node type by the given name exists.
+
+=cut
+
+sub node_type_named {
+    die "node_type_named() must be implemented by subclass";
+}
+
+=item $property_type = $engine-E<gt>property_type_named($type_name)
+
+Given a property type name, this method returns an instance of L<Content::Repository::Type::Property> for the matching property type or C<undef> if no property type by the given name exists.
+
+=cut
+
+sub property_type_named {
+    die "property_type_named() must be implemented by subclass";
+}
+
+=item @nodes = $engine-E<gt>nodes_in($path)
 
 Given a path, this method should return all the child nodes of that path or an empty list if the node found has no children. If the given path itself does not exist, the method must die.
 
 The nodes returned should be returned as paths.
 
-=item %properties = $engine-E<gt>fetch_properties($path)
+=cut
+
+sub nodes_in {
+    die 'nodes_in() must be implemented by subclass';
+}
+
+=item %properties = $engine-E<gt>properties_in($path)
 
 Given a path, this method should return all the child properties of the node at the given path or an empty list if the node found has no children. If the given path itself does not exist, the method must die.
 
 The properties returned should be returned each as a hash. The keys of this hash are the property names and the values are scalar values tied to L<Content::Repository::Value>.
 
-=item $node_type = $engine-E<gt>fetch_node_type_of($path)
+=cut
 
-Given a path, this method should return the L<Content::Repository::NodeType> object for the node at that path. If there is no node at that path, then the method must die.
+sub properties_in {
+    die 'properties_in() must be implemented by subclass';
+}
+
+=item $node_type = $engine-E<gt>node_type_of($path)
+
+Given a path, this method should return the L<Content::Repository::Type::Node> object for the node at that path. If there is no node at that path, then the method must die.
+
+=cut
+
+sub node_type_of {
+    die 'node_type_of() must be implemented by subclass';
+}
+
+=item $property_type = $engine-E<gt>property_type_of($path)
+
+Return the property type of the given class via a L<Content::Repository::Type::Property> instance. If there is no node at that path, then the method must die.
+
+=cut
+
+sub property_type_of {
+    die 'property_type_of() must be implemented by subclass';
+}
+
+=item $scalar = $engine-E<gt>get_scalar($path)
+
+Return the value of the property at the given path as a scalar value.
+
+=cut
+
+sub get_scalar {
+    die 'get_scalar() must be implemented by subclass';
+}
+
+=item $handle = $engine-E<gt>get_handle($path, $mode)
+
+Return the value of the property at the given path as an IO handle, with the given mode, C<$mode>. The C<$mode> must be one of:
+
+=over
+
+=item "<"
+
+=item ">"
+
+=item ">>"
+
+=item "+<"
+
+=item "+>"
+
+=item "+>>"
+
+=back
+
+These have the same meaning as the Perl C<open()> built-in (i.e., read, write, append, read-write, write-read, append-read).
+
+=cut
+
+sub get_handle {
+    die 'get_handle() must be implemented by subclass';
+}
 
 =back
 

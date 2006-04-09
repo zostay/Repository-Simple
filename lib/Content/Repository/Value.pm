@@ -11,41 +11,29 @@ Content::Repository::Value - Tie interface to property values
 
 =head1 DESCRIPTION
 
-This class is used as a helper to L<Content::Repository::Property> and L<Content::Repository::PropertyType>. Do not use this directly. Ever.
+This class is used as a helper to L<Content::Repository::Property> and L<Content::Repository::Type::Value>. Do not use this directly. Ever.
 
 =cut
 
-sub TIESCALAR {
-    my ($class, $type, $value) = @_;
+sub new {
+    my ($class, $engine, $path) = @_;
 
-    my $self = bless { 
-        type     => $type, 
-        value    => $type->inflate($value),
+    return bless { 
+        engine => $engine,
+        path => $path,
     }, $class;
-
-    return $self;
 }
 
-sub FETCH {
+sub get_scalar {
     my $self = shift;
-    return $self->{value};
+
+    return $self->{engine}->get_scalar($self->{path});
 }
 
-sub STORE {
-    my ($self, $value) = @_;
-    $self->{type}->check($value);
-    $self->{changed}++;
-    $self->{value} = shift;
-}
+sub get_handle {
+    my ($self, $mode) = @_;
 
-sub has_changed {
-    my $self = shift;
-    return $self->{changed};
-}
-
-sub value {
-    my $self = shift;
-    return $self->{type}->deflate($self->{value});
+    return $self->{engine}->get_handle($self->{path}, $mode)
 }
 
 =head1 AUTHOR

@@ -5,6 +5,9 @@ use warnings;
 
 our $VERSION = '0.01';
 
+use Content::Repository::Util qw( normalize_path );
+use Content::Repository::Value;
+
 =head1 NAME
 
 Content::Repository::Property - Content repository property information
@@ -19,7 +22,7 @@ Each instance of this class represents a single property of a node.
 
 To retrieve a property instance, do not construct the object directly. Rather, use the methods associated with a node to retrieve the properties associated with that node.
 
-Each property has a parent (node), a name, a value, and a type. The key is non-empty string identifying the property. The value is a valid value according to the property type. The type is an instance of L<Content::Repository::PropertyType>. If a property value is set to C<undef>, this is the same as deleting the property from the parent node.
+Each property has a parent (node), a name, a value, and a type. The key is non-empty string identifying the property. The value is a valid value according to the property type. The type is an instance of L<Content::Repository::Type::Property>. If a property value is set to C<undef>, this is the same as deleting the property from the parent node.
 
 =cut
 
@@ -65,7 +68,7 @@ Get the full path to the property.
 
 sub path {
     my $self = shift;
-    return $self->{node}.'/'.$self->{name};
+    return normalize_path($self->{node}->path, $self->{name});
 }
 
 =item $value = $self-E<gt>value
@@ -76,20 +79,24 @@ Retrieve the value stored in the property.
 
 sub value {
     my $self = shift;
-    return $self->{value};
+    return Content::Repository::Value->new($self->engine, $self->path);
 }
 
 =item $type = $self-E<gt>type
 
-Retrieve the L<Content::Repository::PropertyType> used to validate and store values for this property.
+Retrieve the L<Content::Repository::Type::Property> used to validate and store values for this property.
 
 =cut
 
 sub type {
     my $self = shift;
-    my %property_types = $self->{node}->type->child_properties;
-    my $type_name = $property_types{ $self->{name} };
-    return $self->{node}->repository->property_type($type_name);
+    return $self->engine->property_type_of($self->path);
+}
+
+sub engine {
+    my $self = shift;
+    return $self->{engine} if $self->{engine};
+    return $self->{engine} = $self->{node}->repository->engine;
 }
 
 =head1 AUTHOR
