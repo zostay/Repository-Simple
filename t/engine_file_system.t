@@ -218,5 +218,7 @@ for my $path (keys %paths) {
 ok(!$engine->path_exists('/notta'), '!path_exists node');
 
 # Test nodes_in()
-is_deeply([ sort $engine->nodes_in('/') ], [ 'bar', 'baz', 'foo' ],
+is_deeply(
+    [ sort grep !/^\.svn$/, $engine->nodes_in('/') ], 
+    [ 'bar', 'baz', 'foo' ],
     'nodes_in');
