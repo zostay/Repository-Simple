@@ -38,6 +38,8 @@ sub new {
     }, $class;
 }
 
+=over
+
 =item $node = $self-E<gt>parent
 
 Get the node to which this property belongs.
@@ -98,6 +100,8 @@ sub engine {
     return $self->{engine} if $self->{engine};
     return $self->{engine} = $self->{node}->repository->engine;
 }
+
+=back
 
 =head1 AUTHOR
 

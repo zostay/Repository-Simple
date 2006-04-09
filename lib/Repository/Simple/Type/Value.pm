@@ -143,6 +143,8 @@ The default implementation doesn't modify the C<$inflated_value> at all.
 
 sub deflate {}
 
+=back
+
 =head1 AUTHOR
 
 Andrew Sterling Hanenkamp, E<lt>hanenkamp@cpan.orgE<gt>
