@@ -55,6 +55,7 @@
     * t/engine_file_system.t: Added tests for
       Repository::Simple::Engine::FileSystem.
     * t/value.t: Added tests for Repository::Simple::Value.
+    * t/pod.t: Added tests for POD errors.
     * t/engine_table.t: Added tests for Repository::Simple::Engine::Table.
 	* t/root, t/root/foo, t/root/bar, t/root/baz, t/root/baz/qux: Added some
 	  files for testing upon.
