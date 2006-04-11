@@ -4,9 +4,9 @@ Repository::Simple::Type - Summary of the typing system
 
 =head1 DESCRIPTION
 
-The typing system provides a rich set of descriptions for the nature of nodes on several different levels. Since there are four levels to this system, I will try to give an overview here to hopefully head off any confusion.
+The typing system provides a rich set of descriptions for the nature of nodes on several different levels. Since there are three levels to this system, I will try to give an overview here to hopefully head off any confusion.
 
-There are four levels in the type system. From highest to lowest, the levels are:
+There are three levels in the type system. From highest to lowest, the levels are:
 
 =over
 
@@ -20,11 +20,7 @@ B<Property Type.> Property types are represented by L<Repository::Simple::Type::
 
 =item 3.
 
-B<Value Type.> Value types are represented by L<Repository::Simple::Type::Value>. These define convenience wrappers around storage types. Values are an abstraction around stored fields, which allow a stored field to be treated as complex Perl data types without requiring any additional functionality in the storage engine.
-
-=item 4.
-
-B<Storage Type.> Storage types are represented by L<Repository::Simple::Type::Storage>. These define the nature of fields stored in a storage engine. Storage fields represent the underlying "boxes" in which values are really stored.
+B<Value Type.> Value types are represented by L<Repository::Simple::Type::Value>. These define the acceptable format and storage of values.
 
 =back
 
@@ -32,7 +28,7 @@ See the documentation associated with each of the above for details.
 
 =head1 SEE ALSO
 
-L<Repository::Simple::Type::Node>, L<Repository::Simple::Type::Property>, L<Repository::Simple::Type::Value>, L<Repository::Simple::Type::Storage>
+L<Repository::Simple::Type::Node>, L<Repository::Simple::Type::Property>, L<Repository::Simple::Type::Value>
 
 =head1 AUTHOR
 

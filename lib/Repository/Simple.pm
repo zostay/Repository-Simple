@@ -6,7 +6,9 @@ use warnings;
 our $VERSION = '0.01';
 
 use Carp;
+use Repository::Simple::Engine qw( :exists_constants );
 use Repository::Simple::Node;
+use Repository::Simple::Util qw( basename dirname normalize_path );
 
 =head1 NAME
 
@@ -21,6 +23,8 @@ Repository::Simple - Simple heirarchical repository for Perl
   );
 
 =head1 DESCRIPTION
+
+B<NOTICE:> This software is still in development and the interface WILL CHANGE.
 
 This is the main module of a hierarchical repository system, which is loosely based upon the L<File::System> module I've written combined with ideas from the JSR 170, a.k.a. Content Repository API for the Java API Specification.
 
@@ -257,6 +261,36 @@ sub root_node {
     my $self = shift;
     return Repository::Simple::Node->new($self, "/");
 }
+
+=item $item = $repository-E<gt>get_item($path)
+
+Return the node (L<Repository::Simple::Node>) or property (L<Repository::Simple::Property>) found at the given path. This method returns C<undef> if the given path points to nothing.
+
+=cut
+
+sub get_item {
+    my ($self, $path) = @_;
+
+    $path = normalize_path('/', $path);
+
+    my $exists = $self->engine->path_exists($path);
+
+    if ($exists == $NODE_EXISTS) {
+        return Repository::Simple::Node->new($self, $path);
+    }
+
+    elsif ($exists == $PROPERTY_EXISTS) {
+        my $property_name = basename($path);
+        my $parent_path   = dirname($path);
+        my $parent = Repository::Simple::Node->new($self, $parent_path);
+        return Repository::Simple::Property->new($parent, $property_name);
+    }
+
+    else {
+        return undef;
+    }
+}
+
 
 =back
 

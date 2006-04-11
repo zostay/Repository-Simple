@@ -15,29 +15,37 @@ Repository::Simple::Type::Node - Types for content repository nodes
 
 =head1 SYNOPSIS
 
-  sub print_node_types {
+An example using this subroutine can be found in F<ex/print_types.pl> of the original source distribution.
+
+  sub print_node_type {
       my $node = shift;
-
+  
       my $type = $node->type;
-
-      print $node->name, " : ", $type->name, "\n";
-
+  
+      print $node->name, ' : ', $type->name;
+      print ' [AC]' if $type->auto_created;
+      print ' [UP]' if $type->updatable;
+      print ' [RM]' if $type->removable;
+      print "\n";
+  
       my %property_types = $type->property_types;
-      while (my ($name, $ptype) = each %property_types) {
-          print " * ", $name, " : ", $ptype->name, " {";
-          my %options = $ptype->options;
-          while (my ($k,$v) = each %options) { print " $k=>$v" }
-          print " }";
-          print " [AC]" if $ptype->auto_created;
-          print " [UP]" if $ptype->updatable;
-          print " [RM]" if $ptype->removable;
+      while (my ($name, $ptype_name) = each %property_types) {
+          my $ptype = $node->repository->property_type($ptype_name);
+  
+          printf ' * %-10s : %-16s', $name, $ptype->name;
+  
+          print ' [AC]' if $ptype->auto_created;
+          print ' [UP]' if $ptype->updatable;
+          print ' [RM]' if $ptype->removable;
           print "\n";
       }
   }
 
 =head1 DESCRIPTION
 
-Node types are used to determine information about what kind of information is expected and required to be part of a node instance. A node type may inherit features from another node type through inheritance.
+Node types are used to determine information about what kind of information is expected and required to be part of a node instance. A node type may also inherit features from one or more node types.
+
+Most developers will not need to create node types, but may use node types to discover information about how a node can be manipulated and what kind of information can be expected from a given node.
 
 =head2 METHODS
 
@@ -45,7 +53,7 @@ Node types are used to determine information about what kind of information is e
 
 =item $type = Repository::Simple::Type::Node-E<gt>new(%args)
 
-Create as a new node type with the given arguments, C<%args>.
+Create a new node type with the given arguments, C<%args>.
 
 The following arguments are used:
 
@@ -57,7 +65,7 @@ This is the storage engine to which the node type belongs.
 
 =item name (required)
 
-This is the a short identifying name for the type.
+This is the short identifying name for the type. This is should be a fully qualified name, e.g., "ns:name".
 
 =item super_types
 
@@ -77,7 +85,7 @@ For example,
       '*' => [ 'my:typeX', 'my:typeZ' ],
   },
 
-allows the nodes of the defined node type to have a node named "foo" with type "my:typeX", a node named "bar" with either the type "my:typeY" or the type "my:typeZ", and any number of other nodes named anything with type "my:typeX" or "my:typeZ".
+allows the nodes of the defined node type to have a child node named "foo" with type "my:typeX", a node named "bar" with either the type "my:typeY" or the type "my:typeZ", and any number of other nodes named anything with type "my:typeX" or "my:typeZ".
 
 =item property_types
 
@@ -85,7 +93,7 @@ This option is set to a hash where the keys are property names and the values ar
 
 =item auto_created
 
-This option is set to true if this node will be created automatically when it's parent is created.
+This option is set to true if this node will be created automatically when its parent is created.
 
 By default, this value is false.
 
@@ -144,7 +152,7 @@ sub name {
 
 =item @super_types = $type-E<gt>super_types
 
-This method returns the direct super_types of the type.
+This method returns the direct super types of the type or an empty list if there are no direct super types.
 
 =cut
 

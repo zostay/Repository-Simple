@@ -12,28 +12,15 @@ use Scalar::Util qw( weaken );
 
 =head1 NAME
 
-Repository::Simple::Type::Property - Types for content repository properties
+Repository::Simple::Type::Property - Types for repository properties
 
 =head1 SYNOPSIS
 
-  sub print_property_type {
-      my $property = shift;
-
-      my $type = $property->type;
-
-      print " * ", $property->name, " : ", $type->name, " {";
-      my %options = $type->options;
-      while (my ($k,$v) = each %options) { print " $k=>$v" }
-      print " }";
-      print " [RO]"  if !$type->mutable;
-      print " [REQ]" if  $type->required;
-      print "\n";
-      
-  }
+See L<Repository::Simple::Type::Node/"SYNOPSIS">.
 
 =head1 DESCRIPTION
 
-Property types are used to determine information about what kind of information is acceptable for a property value. This class provides a flexible way of describing the possible values, a method for marshalling and unmarshalling those values to and from a scalar for storage, and other metadata about possible values.
+Property types are used to determine information about what kind of information is acceptable for a property and how it may be updated. This class provides a flexible way of describing the possible values, a method for marshalling and unmarshalling those values to and from a scalar for storage, and other metadata about possible values.
 
 =head2 METHODS
 
@@ -53,7 +40,7 @@ This is a reference to the storage engine owning this property type.
 
 =item name (required)
 
-This is a short identifying name for the type.
+This is a short identifying name for the type. This should be a fully qualified name, e.g., "ns:name".
 
 =item auto_created
 
@@ -159,74 +146,6 @@ sub value_type {
     my $self = shift;
     return $self->{value_type};
 }
-
-# =item $type-E<gt>check($value)
-# 
-# Given an inflated value, this method will check to see that the value is valid. If the type is immutable, i.e., C<mutable()> returns false, then this method will always croak with the message:
-# 
-#   Cannot change immutable property.
-# 
-# If the type is required, i.e., C<required()> returns true, then this method will croak when C<$value> is set to C<undef> with this message:
-# 
-#   This property is required and may not be unset or deleted.
-# 
-# In any other case, this method will throw the exceptions thrown by the check subroutine given during construction. If no check subroutine was given, no exception will be thrown.
-# 
-# =cut
-# 
-# sub check {
-#     my ($self, $value) = @_;
-# 
-#     if (!$self->{mutable}) {
-#         croak 'Cannot change immutable property.';
-#     }
-# 
-#     if ($self->{required} && !defined $value) {
-#         croak 'This property is required and may not be unset or deleted.';
-#     }
-# 
-#     if (defined $self->{check}) {
-#         $self->{check}->($self, $value);
-#     }
-# 
-#     return 1;
-# }
-# 
-# =item $inflated_value = $type-E<gt>inflate($deflated_value)
-# 
-# This method uses the C<inflate> subroutine given during construction to inflate the C<$deflated_value> given. If no subroutine was given, then the C<$inflated_value> will be identical to the C<$deflated_value>.
-# 
-# =cut
-# 
-# sub inflate {
-#     my ($self, $value) = @_;
-# 
-#     if (defined $self->{inflate}) {
-#         return $self->{inflate}->($self, $value);
-#     }
-# 
-#     else {
-#         return $value;
-#     }
-# }
-# 
-# =item $deflated_value = $type-E<gt>deflate($inflated_value)
-# 
-# This method uses the C<deflate> subroutine given during construction to deflate the C<$inflated_value> given. If no subroutine was given, then the C<$deflated_value> will be identical to the C<$inflated_value>.
-# 
-# =cut
-# 
-# sub deflate {
-#     my ($self, $value) = @_;
-# 
-#     if (defined $self->{deflate}) {
-#         return $self->{deflate}->($self, $value);
-#     }
-# 
-#     else {
-#         return $value;
-#     }
-# }
 
 =back
 

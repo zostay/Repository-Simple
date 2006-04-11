@@ -17,7 +17,7 @@ Repository::Simple::Type::Value::Scalar - Simple "rs:scalar" value type
 
 =head1 DESCRIPTION
 
-This represents the simplest of all value types. It only holds flat strings and does nothing to inflate or deflate them.
+This represents the simplest of all value types. It only holds any scalar and does nothing to check or inflate or deflate a given value.
 
 =cut
 

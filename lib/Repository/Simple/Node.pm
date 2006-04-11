@@ -4,20 +4,24 @@ use strict;
 use warnings;
 
 use Repository::Simple::Property;
-use Repository::Simple::Util qw( dirname normalize_path );
+use Repository::Simple::Util qw( basename dirname normalize_path );
 
 our $VERSION = '0.01';
 
 =head1 NAME
 
-Repository::Simple::Node - Content repository node information
+Repository::Simple::Node - Repository nodes
 
 =head1 SYNOPSIS
 
+The following code can be found in F<ex/print_nodes.pl>:
+
   use Repository::Simple;
 
-  my $repository = Repository::Simple::Factory->connect(
-      FileSystem => { root => '/var/db/cr' }
+  sub print_node;
+
+  my $repository = Repository::Simple->attach(
+      FileSystem => root => $ARGV[0],
   );
 
   my $node = $repository->root_node;
@@ -39,9 +43,12 @@ Repository::Simple::Node - Content repository node information
 
 =head1 DESCRIPTION
 
-Each instance of this class describes a node in a repository. A node is basically a unit of information described by a path, which may have zero or more additional properties assigned to it.
+Each instance of this class describes a node in a repository. A node is basically a unit of information described by a path.
 
-To retrieve an instance of this type, you never construct this object directly. Instead, use one of the node access methods in L<Repository::Simple>.
+To retrieve an instance of this type, you never construct this object directly. Instead, use one of the node access methods in L<Repository::Simple> and L<Repository::Simple::Node>:
+
+  my $root = $repository->root_node;
+  my @children = $root->nodes;
 
 =cut
 
@@ -106,17 +113,7 @@ In this API it has been decided that the root node will be represented by the st
 sub name {
     my ($self) = @_;
     return $self->{name} if $self->{name};
-
-    # The name of the root node is '/'
-    my $path = $self->{path};
-    if ($path eq '/') {
-        return $self->{name} = '/';
-    } 
-    
-    else {
-        my @components = split m{/}, $path;
-        return $self->{name} = pop @components;
-    }
+    return $self->{name} = basename($self->{path});
 }
 
 =item $path = $node-E<gt>path

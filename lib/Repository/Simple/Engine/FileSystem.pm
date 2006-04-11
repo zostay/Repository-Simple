@@ -18,20 +18,106 @@ use base 'Repository::Simple::Engine';
 
 =head1 NAME
 
-Repository::Simple::Engine::FileSystem - Content repository in the real FS
+Repository::Simple::Engine::FileSystem - Native file system repository storage
 
 =head1 SYNOPSIS
 
   use Repository::Simple;
-  my $fs = Repository::Simple::Factory->('FileSystem', root => '/usr/local');
+  my $fs = Repository::Simple->->attach('FileSystem', root => '/usr/local');
 
 =head1 DESCRIPTION
 
-Each node in this content repository is a file system file. As of this writing, the repository is capable of handling directories and files. All other file types may or may not be handled appropriate.
+This repository maps directly into the native file system. The goal is to make this mapping as direct as possible with very few deviations from native features and functionality.
+
+As of this documentation, the storage engine is capable of handling only files and directories. Symlinks, devices, FIFOs, or any other kind of file type is partially handled, but the specifics functionality provided by these certainly isn't address completely.
 
 =head1 OPTIONS
 
-This file system module accepts only a single option, C<root>. If not given, the current working directory is assumed for the value C<root>. All files returned by the file system will be rooted at the given (or assumed) point.
+This file system module accepts only a single option, C<root>. If not given, the current working directory is assumed for the value C<root>. All files returned by the file system will be rooted at the given (or assumed) point. No file outside of that point is accessible.
+
+=head1 NODE TYPES
+
+There are three node types used by this engine:
+
+=over
+
+=item fs:object
+
+This represents any non-file/non-directory file system object. The fs:file and fs:directory objects inherit from this. The stat properties are associated with this object.
+
+=item fs:file
+
+This represents a file object, i.e., anything that would pass the C<-f> test. This object has the stat properties plus the fs:content property associated with it.
+
+=item fs:directory
+
+This represents a directory object, i.e., anything that would pass the C<-d> test. This object has the stat properties associated with it. It may also have child nodes associated with it. The names and types of child nodes is not restricted.
+
+=back
+
+=head1 NODE PROPERTIES
+
+All file system nodes have stat properties associated with them. These properties are populated by the return of the C<stat()> built-in subroutine. The stat properties are:
+
+=over
+
+=item fs:dev
+
+device number of file system
+
+=item fs:ino
+
+inode number
+
+=item fs:mode
+
+file mode (type and permissions)
+
+=item fs:nlink
+
+number of (hard) links to the file
+
+=item fs:uid
+
+numeric user ID of file's owner
+
+=item fs:gid
+
+numeric group ID of file's owner
+
+=item fs:rdev
+
+the device identifier (special files only)
+
+=item fs:size
+
+total size of file, in bytes
+
+=item fs:atime
+
+last access time in seconds since the epoch
+
+=item fs:mtime
+
+last modify time in seconds since the epoch
+
+=item fs:ctime
+
+last change time in seconds since the epoch
+
+=item fs:blksize
+
+preferred block size for file system I/O
+
+=item fs:blocks
+
+actual number of blocks allocated
+
+=back
+
+The definitions were taken from the documentation in L<perlfunc>. Each of these will be an integer number. Once modification is implemented, the fs:mode, fs:uid, fs:gid, fs:atime, fs:mtime, and fs:ctime fields will be updatable. All other fields are not updatable. All of these fields are auto_created and all or not removable.
+
+In addition to these properties, fs:file nodes also have an fs:content property, which will contain the file contents. You may wish to grab this data via the C<get_handle()> method rather than C<get_scalar()>.
 
 =cut
 
@@ -371,17 +457,23 @@ sub check_real_path {
 
 =head1 SEE ALSO
 
-L<File::System>, L<File::System::Object>
+L<Repository::Simple>
 
 =head1 AUTHOR
 
-Andrew Sterling Hanenkamp, E<lt>hanenkamp@users.sourceforge.netE<gt>
+Andrew Sterling Hanenkamp, E<lt>hanenkamp@cpan.orgE<gt>
 
-=head1 COPYRIGHT AND LICENSE
+=head1 LICENSE AND COPYRIGHT
 
-Copyright 2005 Andrew Sterling Hanenkamp. All Rights Reserved.
+Copyright 2006 Andrew Sterling Hanenkamp E<lt>hanenkamp@cpan.orgE<gt>.  All 
+Rights Reserved.
 
-This software is distributed and licensed under the same terms as Perl itself.
+This module is free software; you can redistribute it and/or modify it under
+the same terms as Perl itself. See L<perlartistic>.
+
+This program is distributed in the hope that it will be useful, but WITHOUT
+ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS
+FOR A PARTICULAR PURPOSE.
 
 =cut
 

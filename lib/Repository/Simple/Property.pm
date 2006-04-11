@@ -10,7 +10,7 @@ use Repository::Simple::Value;
 
 =head1 NAME
 
-Repository::Simple::Property - Content repository property information
+Repository::Simple::Property - Repository properties
 
 =head1 SYNOPSIS
 
@@ -20,21 +20,25 @@ See L<Repository::Simple::Node>.
 
 Each instance of this class represents a single property of a node.
 
-To retrieve a property instance, do not construct the object directly. Rather, use the methods associated with a node to retrieve the properties associated with that node.
+To retrieve a property instance, do not construct the object directly. Rather, use the methods associated with a node to retrieve the properties associated with that node:
 
-Each property has a parent (node), a name, a value, and a type. The key is non-empty string identifying the property. The value is a valid value according to the property type. The type is an instance of L<Repository::Simple::Type::Property>. If a property value is set to C<undef>, this is the same as deleting the property from the parent node.
+  my @properties = $node->properties;
+  for my $property (@properties) {
+      print $property->name, " = ", $property->value->get_scalar;
+  }
+
+Each property has a parent (node), a name, a value, and a type. The name is non-empty string identifying the property. The value is a valid value according to the property type. The type is an instance of L<Repository::Simple::Type::Property>. If a property value is set to C<undef>, this is the same as deleting the property from the parent node.
 
 =cut
 
-# $property = Repository::Simple::Property->new($node, $name, $value)
+# $property = Repository::Simple::Property->new($node, $name)
 #
 # Create a new property object.
 sub new {
-    my ($class, $node, $name, $value) = @_;
+    my ($class, $node, $name) = @_;
     return bless {
         node  => $node,
         name  => $name,
-        value => $value,
     }, $class;
 }
 
@@ -70,7 +74,8 @@ Get the full path to the property.
 
 sub path {
     my $self = shift;
-    return normalize_path($self->{node}->path, $self->{name});
+    return $self->{path} if $self->{path};
+    return $self->{path} = normalize_path($self->{node}->path, $self->{name});
 }
 
 =item $value = $self-E<gt>value

@@ -18,7 +18,7 @@ our @EXPORT_OK = qw(
 
 =head1 NAME
 
-Repository::Simple::Util - Utility methods shared by content repository components
+Repository::Simple::Util - Utility methods shared by repository components
 
 =head1 SYNOPSIS
 
@@ -31,7 +31,7 @@ Repository::Simple::Util - Utility methods shared by content repository componen
 
 =head1 DESCRIPTION
 
-The methods here are for use by the content repository and content repository engines internally. If you are not writing a content repository engine, you should avoid these methods.
+The methods here are for use by the content repository and content repository engines internally. Unless you are extending the repository system, you will probably want to avoid the use of these methods.
 
 =head1 METHODS
 
@@ -157,8 +157,6 @@ sub basename {
         return pop @components;
     }
 }
-
-
 
 =back
 

@@ -34,11 +34,7 @@ Repository::Simple::Type::Value - Abstract base class for value types
   use base qw( Repository::Simple::Type::Value );
 
   sub name { 
-      return 'my:valueType'; 
-  }
-
-  sub storage_type {
-      return $SCALAR_TYPE;
+      return 'my:value-type'; 
   }
 
   # Only strings starting with "Foo" are accepted
@@ -66,9 +62,9 @@ Repository::Simple::Type::Value - Abstract base class for value types
 
 If you are just a casual user of L<Repository::Simple>, then the nature of this class isn't a concern. However, if you want to extend the functionality of L<Repository::Simple>, then you may be interested in this class.
 
-To create a value type, subclass this class and implement the various methods as appropriate. Below are listed the expected inputs/outputs for each method and the nature of the default implementation, if one is provided.
+To create a value type, subclass this class and implement methods as appropriate. Below are listed the expected inputs/outputs for each method and the nature of the default implementation, if one is provided.
 
-=head2 METHODS
+=head2 REQUIRED METHODS
 
 =over
 
@@ -84,64 +80,35 @@ This method MUST be implemented by the subclass. It should return a short string
 
 sub name { die "Subclasses must implement this method." }
 
-=item $type = $value_type-E<gt>storage_type
+=back
 
-The value returned, C<$type>, represents the underlying storage mechanism required to store a value of this type.
+=head2 OPTIONAL METHODS
 
-Each of the following constants can be imported from this package:
-
-  use Repository::Simple::Type::Value qw( $SCALAR_TYPE );
-
-  # OR, to get all of them:
-  use Repository::Simple::Type::Value qw( :type_constants );
-
-The constants have the following meanings:
+The following methods are optional. These methods allow storage engine independant features to be added to the store. However, you may need to be careful about employing them. If any of the following methods are defined for a value, the entire value will be read in from storage and passed to each. This may be undesireable if a value may storage large amounts of data.
 
 =over
 
-=item C<$SCALAR_TYPE>
-
-This holds a scalar value of arbitrary length. A scalar is a string or number.
-
-=item C<$HANDLE_TYPE>
-
-These values are stored as file handles. The file handle will be returned as a reference to a GLOB. The fact that it is a handle does not specify whether the file handle is for input, output, bidirectional, or seekable. 
-
-=back
-
 =item $value_type-E<gt>check($value)
 
-Given a scalar value, this method SHOULD throw an exception if the value is not acceptable for some reason. If the value is acceptable, the method MUST NOT throw an exception.
+Given a scalar value, this method should throw an exception if the value is not acceptable for some reason. If the value is acceptable, the method must not throw an exception.
 
-The default implementation never throws an exception;
-
-=cut
-
-sub check {}
+If not defined, all input is considered acceptable.
 
 =item $inflated_value = $value_type-E<gt>inflate($deflated_value)
 
-Given a flat scalar string value, this method MUST transform the value into the representation to be accessed by the end-user, and return that as a scalar (possibly a reference to a complex type). 
+Given a flat scalar value, this method may transform the value into the representation to be accessed by the end-user, and return that as a scalar (possibly a reference to a complex type). 
 
 For example, if this type represents a L<DateTime> object, then the method will translate some string formatted date and parse it into a L<DateTime> object.
 
-The default implementation doesn't modify the flat string representation.
-
-=cut
-
-sub inflate {}
+This method will be called whenever loading the value from storage.
 
 =item $deflated_value = $value_type-E<gt>deflate($inflated_value)
 
-Given the end-user representation of this type (possibly a reference to a complex type), this method MUST transform the value into a flat scalar string value for storage and return it.
+Given the end-user representation of this type (possibly a reference to a complex type), this method may transform the value into a scalar value for storage and return it.
 
 For example, if this type represents a L<DateTime> object, then the method should return a string representation of the L<DateTime> object.
 
-The default implementation doesn't modify the C<$inflated_value> at all.
-
-=cut
-
-sub deflate {}
+This method will be called whenever saving the value back to storage.
 
 =back
 
