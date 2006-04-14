@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 15;
+use Test::More tests => 16;
 
 use_ok('Repository::Simple');
 
@@ -15,6 +15,11 @@ ok($repository);
 my $engine = $repository->engine;
 ok($engine);
 isa_ok($engine, 'Repository::Simple::Engine::FileSystem');
+
+my %namespaces = $repository->namespaces;
+is_deeply(\%namespaces, { 
+    'fs' => 'http://contentment.org/Repository/Simple/Engine/FileSystem' 
+});
 
 my $fs_object = $repository->node_type('fs:object');
 ok($fs_object);

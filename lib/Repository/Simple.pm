@@ -3,7 +3,7 @@ package Repository::Simple;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp;
 use Repository::Simple::Engine qw( :exists_constants );
@@ -291,6 +291,16 @@ sub get_item {
     }
 }
 
+=item %namespaces = $repository-E<gt>namespaces
+
+Determine the meaning of the name prefixes used by the engine. This returns a hash of all namespace information currently used by the storage engine.
+
+=cut
+
+sub namespaces {
+    my ($self) = @_;
+    return %{ $self->engine->namespaces };
+}
 
 =back
 

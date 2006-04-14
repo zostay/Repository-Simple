@@ -3,7 +3,7 @@ package Repository::Simple::Engine::FileSystem;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Carp;
 use Repository::Simple::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
@@ -120,6 +120,10 @@ The definitions were taken from the documentation in L<perlfunc>. Each of these 
 In addition to these properties, fs:file nodes also have an fs:content property, which will contain the file contents. You may wish to grab this data via the C<get_handle()> method rather than C<get_scalar()>.
 
 =cut
+
+my %namespaces = (
+    fs => 'http://contentment.org/Repository/Simple/Engine/FileSystem',
+);
 
 my %node_type_defs = (
     'fs:object' => {
@@ -454,6 +458,8 @@ sub check_real_path {
         croak qq(no file found at path "$path");
     }
 }
+
+sub namespaces { return \%namespaces; }
 
 =head1 SEE ALSO
 

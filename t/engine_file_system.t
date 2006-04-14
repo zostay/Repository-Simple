@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 279;
+use Test::More tests => 280;
 
 use_ok('Repository::Simple::Engine::FileSystem');
 
@@ -28,6 +28,7 @@ can_ok($engine, qw(
     properties_in
     get_scalar
     get_handle
+    namespaces
 ));
 
 # Test fs:object node type
@@ -222,3 +223,8 @@ is_deeply(
     [ sort grep !/^\.svn$/, $engine->nodes_in('/') ], 
     [ 'bar', 'baz', 'foo' ],
     'nodes_in');
+
+# Test namespaces()
+is_deeply($engine->namespaces, { 
+    fs => 'http://contentment.org/Repository/Simple/Engine/FileSystem',
+});

@@ -1,4 +1,16 @@
-0.01    2006-03-11 20:54    Andrew Sterling Hanenkamp
+0.02    2006-04-13 21:10    Andrew Sterling Hanenkamp
+
+    * Added rudimentary namespaces support.
+    * Changes: Added a better delineation in the changelog as to why the version
+    * numbers suddenly change.
+    * t/repository.t: Added a test for the namespaces() method.
+    * t/engine.t: Added a test for the namespaces() method.
+    * t/engine_file_system.t: Added a test for the namespaces() method.
+    * lib/Repository/Simple.pm: Added the namespaces() method.
+    * lib/Repository/Simple/Engine.pm: Added the namespaces() method.
+    * lib/Repository/Simple/Engine/FileSystem.pm: Added the namespaces() method.
+
+0.01    2006-04-11 20:54    Andrew Sterling Hanenkamp
 
     * This is a fork of File::System called Repository::Simple. As of this
       version, this is only an experiment. See the documentation in
@@ -59,6 +71,8 @@
     * t/engine_table.t: Added tests for Repository::Simple::Engine::Table.
 	* t/root, t/root/foo, t/root/bar, t/root/baz, t/root/baz/qux: Added some
 	  files for testing upon.
+
+==== REFACTORED FROM File::System ==============================================
 
 1.16    2005-12-03 16:34    Andrew Sterling Hanenkamp
 

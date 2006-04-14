@@ -3,7 +3,7 @@ package Repository::Simple::Engine;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.02';
 
 use Readonly;
 
@@ -258,6 +258,16 @@ This method must be implemented by subclasses. No implementation is provided.
 
 sub get_handle {
     die 'get_handle() must be implemented by subclass';
+}
+
+=item $namespaces = $engine-E<gt>namespaces
+
+This method returns a reference to a hash of all the namespaces the storage engine currently supports. The keys are the prefixes and the values are URLs.
+
+=cut
+
+sub namespaces {
+    die 'namespaces() must be implemented by subclass';
 }
 
 =back
