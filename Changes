@@ -1,3 +1,13 @@
+0.03    2006-04-15 09:14    Andrew Sterling Hanenkamp
+
+    * Added the Memory storage engine.
+    * t/engine_memory.t: Added a test for Repository::Simple::Engine::Memory.
+    * t/engine_file_system.t: Fixed one of the subtests which had the expected
+      and got values mixed up.
+    * lib/Repository/Simple/Engine/Memory.pm: Added a very simple engine for
+      storing nodes and properties in transient pure-Perl memory structures.
+    * lib/Repository/Simple/Engine/FileSystem.pm: Fixed a typo in the SYNOPSIS.
+
 0.02    2006-04-13 21:10    Andrew Sterling Hanenkamp
 
     * Added rudimentary namespaces support.

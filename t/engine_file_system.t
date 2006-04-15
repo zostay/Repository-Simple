@@ -184,8 +184,8 @@ for my $path (keys %paths) {
 
     # Test properties_in()
     is_deeply(
-        [ sort keys %property_types ], 
         [ sort $engine->properties_in($path) ],
+        [ sort keys %property_types ], 
         'properties_in'
     );
 

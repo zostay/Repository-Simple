@@ -23,7 +23,7 @@ Repository::Simple::Engine::FileSystem - Native file system repository storage
 =head1 SYNOPSIS
 
   use Repository::Simple;
-  my $fs = Repository::Simple->->attach('FileSystem', root => '/usr/local');
+  my $fs = Repository::Simple->attach('FileSystem', root => '/usr/local');
 
 =head1 DESCRIPTION
 
