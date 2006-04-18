@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 44;
+use Test::More tests => 62;
+
+use Repository::Simple qw( :permission_constants );
 
 use_ok('Repository::Simple::Engine::Memory');
 
@@ -60,6 +62,7 @@ can_ok($engine, qw(
     get_scalar
     get_handle
     namespaces
+    has_permission
 ));
 
 # Test mem:generic-node node type
@@ -113,6 +116,15 @@ for my $path (keys %paths) {
     # Test nodes
     if (defined $info->{node_type}) {
 
+        # Test has_permission($ADD_NODE) on node
+        ok($engine->has_permission($path."/blah", $ADD_NODE));
+        
+        # Test has_permission($REMOVE) on node
+        ok($engine->has_permission($path, $REMOVE));
+
+        # Test has_permission($READ) on node
+        ok($engine->has_permission($path, $READ));
+
         # Test path_exists() on node
         is($engine->path_exists($path), $NODE_EXISTS, "path_exists($path)");
 
@@ -136,6 +148,15 @@ for my $path (keys %paths) {
 
     # Test properties
     else {
+
+        # Test has_permission($SET_PROPERTY) on property
+        ok($engine->has_permission($path, $SET_PROPERTY));
+
+        # Test has_permission($REMOVE) on property
+        ok($engine->has_permission($path, $REMOVE));
+
+        # Test has_permission($READ) on property
+        ok($engine->has_permission($path, $READ));
         
         # Test path_exists() on property
         is($engine->path_exists($path), $PROPERTY_EXISTS, "path_exists($path)");

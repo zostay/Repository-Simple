@@ -3,7 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 280;
+use Test::More tests => 390;
+
+use Repository::Simple qw( :permission_constants );
 
 use_ok('Repository::Simple::Engine::FileSystem');
 
@@ -29,6 +31,7 @@ can_ok($engine, qw(
     get_scalar
     get_handle
     namespaces
+    has_permission
 ));
 
 # Test fs:object node type
@@ -169,6 +172,20 @@ my %paths = (
 );
 
 for my $path (keys %paths) {
+    # Get a node path with an appropriate trailing slash
+    my $path_slash = $path eq '/' ? $path : "$path/";
+
+    # Test has_permission($ADD_NODE) on node
+    if ($paths{$path} eq 'fs:directory') {
+        ok($engine->has_permission($path_slash."blah", $ADD_NODE));
+    }
+
+    # Test has_permission($REMOVE) on node
+    ok($engine->has_permission($path, $REMOVE));
+
+    # Test has_permission($READ) on node
+    ok($engine->has_permission($path, $READ));
+
     # Test path_exists() on node
     is($engine->path_exists($path), $NODE_EXISTS, "path_exists($path)");
 
@@ -176,9 +193,6 @@ for my $path (keys %paths) {
     my $node_type = $engine->node_type_of($path);
     is_deeply($node_type, $engine->node_type_named($paths{$path}), 
         'node_type_of');
-
-    # Get a node path with an appropriate trailing slash
-    my $path_slash = $path eq '/' ? $path : "$path/";
 
     my %property_types = $node_type->property_types;
 
@@ -191,9 +205,20 @@ for my $path (keys %paths) {
 
     # Loop through all properties that are to be defined
     for my $property (keys %property_types) {
+        my $property_path = $path_slash.$property;
+
+        # Test has_permission($SET_PROPERTY) on property
+        if ($property_types{$property} eq 'fs:scalar') {
+            ok($engine->has_permission($property_path, $SET_PROPERTY));
+        }
+
+        # Test has_permission($REMOVE) on property: never applicable!
+        # ok($engine->has_permission($property_path, $REMOVE));
+
+        # Test has_permission($READ) on property
+        ok($engine->has_permission($property_path, $READ));
 
         # Test path_exists() on property
-        my $property_path = $path_slash.$property;
         is($engine->path_exists($property_path), $PROPERTY_EXISTS,
             'path_exists');
 

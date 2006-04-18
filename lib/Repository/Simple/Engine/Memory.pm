@@ -3,7 +3,7 @@ package Repository::Simple::Engine::Memory;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp;
 use IO::Scalar;
@@ -269,6 +269,8 @@ sub namespaces {
 
     return $self->{namespaces};
 }
+
+sub has_permission { 1 }
 
 =head1 AUTHOR
 

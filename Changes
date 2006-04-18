@@ -1,3 +1,20 @@
+0.04    2006-04-18 06:56    Andrew Sterling Hanenkamp
+    
+    * Added the check_permission() method to Repository::Simple and the
+      has_permission() method to the interface for Repository::Simple::Engine.
+    * t/repository.t: Added tests for check_permission()
+    * t/engine_memory.t: Added tests for has_permission()
+    * t/engine.t: Added tests for has_permission()
+    * t/engine_file_system.t: Added tests for has_permission()
+    * lib/Repository/Simple.pm: Added the check_permission() method and the
+      constants $ADD_NODE, $SET_PROPERTY, $REMOVE, and $READ.
+    * lib/Repository/Simple/Engine.pm: Added the has_permission() method to the
+      interface.
+    * lib/Repository/Simple/Engine/Memory.pm: Added the has_permission() method
+      to the memory engine.
+    * lib/Repository/Simple/Engine/FileSystem.pm: Added the has_permission()
+      method to the file system engine.
+
 0.03    2006-04-15 09:14    Andrew Sterling Hanenkamp
 
     * Added the Memory storage engine.

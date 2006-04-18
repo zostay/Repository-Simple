@@ -3,9 +3,11 @@
 use strict;
 use warnings;
 
-use Test::More tests => 16;
+use Test::More tests => 24;
 
-use_ok('Repository::Simple');
+use_ok('Repository::Simple', ':permission_constants');
+
+use vars qw( $ADD_NODE $SET_PROPERTY $REMOVE $READ );
 
 my $repository = Repository::Simple->attach(
     FileSystem => root => 't/root',
@@ -41,3 +43,35 @@ my $property = $repository->get_item('/baz/qux/fs:content');
 ok($property);
 isa_ok($property, 'Repository::Simple::Property');
 is($property->value->get_scalar, "Your mom goes to college!\n");
+
+# Should succeed
+eval { $repository->check_permission("/baz/blah", $ADD_NODE); };
+ok(!$@); if ($@) { diag($@) }
+
+# Not applicable action to path
+eval { $repository->check_permission("/foo/blah", $ADD_NODE); };
+ok($@);
+
+# Should succeed
+eval { $repository->check_permission("/baz/fs:mode", $SET_PROPERTY); };
+ok(!$@); if ($@) { diag($@) }
+
+# Not applicable action to path
+eval { $repository->check_permission("/baz/fs:rdev", $SET_PROPERTY); };
+ok($@);
+
+# Should succeed
+eval { $repository->check_permission("/foo", $REMOVE); };
+ok(!$@); if ($@) { diag($@) }
+
+# Not applicable action to path
+eval { $repository->check_permission("/baz/fs:rdev", $REMOVE); };
+ok($@);
+
+# Should succeed
+eval { $repository->check_permission("/foo", $READ); };
+ok(!$@); if ($@) { diag($@) }
+
+# Not applicable action to path
+eval { $repository->check_permission("/foo/blah", $READ); };
+ok($@);

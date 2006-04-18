@@ -3,12 +3,27 @@ package Repository::Simple;
 use strict;
 use warnings;
 
-our $VERSION = '0.03';
+our $VERSION = '0.04';
 
 use Carp;
+use Readonly;
 use Repository::Simple::Engine qw( :exists_constants );
 use Repository::Simple::Node;
 use Repository::Simple::Util qw( basename dirname normalize_path );
+
+require Exporter;
+
+our @ISA = qw( Exporter );
+
+our @EXPORT_OK = qw( $ADD_NODE $SET_PROPERTY $REMOVE $READ );
+our %EXPORT_TAGS = (
+    'permission_constants' => \@EXPORT_OK,
+);
+
+Readonly our $ADD_NODE     => "add_node";
+Readonly our $SET_PROPERTY => "set_property";
+Readonly our $REMOVE       => "remove";
+Readonly our $READ         => "read";
 
 =head1 NAME
 
@@ -300,6 +315,136 @@ Determine the meaning of the name prefixes used by the engine. This returns a ha
 sub namespaces {
     my ($self) = @_;
     return %{ $self->engine->namespaces };
+}
+
+=item $repository->check_permission($path, $action)
+
+This method will C<croak()> if the specified action, C<$action>, is not permitted on the given path, C<$path>, due to access restrictions by the current attached session. The C<$path> is an absolute path in the repository. 
+
+The C<$action> must be one of the following constants:
+
+=over
+
+=item $ADD_NODE
+
+Use this to see if the current session is permitted to create a node at C<$path>.
+
+=item $SET_PROPERTY
+
+Use this to see if the current session is permitted to modify the property at C<$path>.
+
+=item $REMOVE
+
+Use this to see if the current session is permitted to remove the node or property at C<$path>.
+
+=item $READ
+
+Use this to see if the current session is permitted to read the data at the node or property at C<$path>.
+
+=back
+
+The constants may be imported from this package individually or as a group using the ":permission_constants" tag:
+
+  use Repository::Simple qw( $READ $ADD_NODE );
+
+  # OR
+  
+  use Repository::Simple qw( :permission_constants );
+
+=cut
+
+sub check_permission {
+    my ($self, $path, $action) = @_;
+    my $engine = $self->engine;
+
+    # What is it?
+    my $exists = $engine->path_exists($path);
+
+    # Make sure this is a valid node action
+    if ($exists == $NODE_EXISTS) {
+        my $node_type = $engine->node_type_of($path);
+
+        if ($action eq $ADD_NODE) {
+            croak qq(Error: cannot create node "$path": it already exists);
+        }
+
+        elsif ($action eq $SET_PROPERTY) {
+            croak qq(Error: cannot set property "$path": a node exists at ),
+                   q(that path);
+        }
+
+        elsif ($action eq $REMOVE) {
+            if (!$node_type->removable) {
+                croak qq(Error: cannot remove node "$path": it is not ),
+                       q(removable);
+            }
+        }
+    }
+
+    # Make sure this is a valid property action
+    elsif ($exists == $PROPERTY_EXISTS) {
+        my $property_type = $engine->property_type_of($path);
+
+        if ($action eq $ADD_NODE) {
+            croak qq(Error: cannot create node "$path": a property exists at ),
+                   q(that path);
+        }
+
+        elsif ($action eq $SET_PROPERTY) {
+            if (!$property_type->updatable) {
+                croak qq(Error: cannot update property "$path": it is not ),
+                       q(updatable);
+            }
+        }
+
+        elsif ($action eq $REMOVE) {
+            if (!$property_type->removable) {
+                croak qq(Error: cannot remove property "$path": it is not ),
+                       q(removable);
+            }
+        }
+    }
+
+    # Doesn't exists, make sure it's a sane thing to say
+    else {
+        # Check for parent
+        my $parent_path = dirname($path);
+        my $parent_exists = $engine->path_exists($parent_path);
+
+        if ($parent_exists == $PROPERTY_EXISTS) {
+            if ($action eq $ADD_NODE) {
+                croak qq(Error: cannot create node "$path": the parent path ),
+                      qq("$parent_path" is a property);
+            }
+
+            elsif ($action eq $SET_PROPERTY) {
+                croak qq(Error: cannot set property "$path": the parent path ),
+                      qq("$parent_path" is a property);
+            }
+        }
+
+        elsif ($parent_exists == $NOT_EXISTS) {
+            if ($action eq $ADD_NODE) {
+                croak qq(Error: cannot create node "$path": the parent path ),
+                      qq("$parent_path" does not exist);
+            }
+        }
+
+        if ($action eq $REMOVE) {
+            croak qq(Error: cannot remove item "$path": the path does not ),
+                   q(exist);
+        }
+
+        elsif ($action eq $READ) {
+            croak qq(Error: cannot read item "$path": the path does not exist);
+        }
+    }
+
+    # Finally, actually check the permissions
+    if (!$self->engine->has_permission($path, $action)) {
+        croak qq(Access denied: current session does not have "$action" ),
+              qq(permission on "$path".);
+    }
 }
 
 =back

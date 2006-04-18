@@ -3,7 +3,7 @@ package Repository::Simple::Engine;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.04';
 
 use Readonly;
 
@@ -268,6 +268,18 @@ This method returns a reference to a hash of all the namespaces the storage engi
 
 sub namespaces {
     die 'namespaces() must be implemented by subclass';
+}
+
+=item $test = $engine-E<gt>has_permission($path, $action)
+
+Tests to see if the current engine session has permission to perform the given action, C<$action>, on path, C<$path>. This method should return a true value if permissions would allow the action to proceed. Return false if the action would fail. The repository will attempt to guarantee that this method will not be called when it is not applicable.
+
+The C<$action> is one of the constants described under C<check_permission()> in the documentation for L<Repository::Simple>.
+
+=cut
+
+sub has_permission {
+    die 'has_permission() must be implemented by subclass';
 }
 
 =back

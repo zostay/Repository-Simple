@@ -3,9 +3,10 @@ package Repository::Simple::Engine::FileSystem;
 use strict;
 use warnings;
 
-our $VERSION = '0.02';
+our $VERSION = '0.04';
 
 use Carp;
+use Repository::Simple qw( :permission_constants );
 use Repository::Simple::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
 use Repository::Simple::Type::Node;
 use Repository::Simple::Type::Property;
@@ -460,6 +461,62 @@ sub check_real_path {
 }
 
 sub namespaces { return \%namespaces; }
+
+my %ustat_props = (
+    'fs:mode'  => 1,
+    'fs:uid'   => 1,
+    'fs:gid'   => 1,
+    'fs:atime' => 1,
+    'fs:mtime' => 1,
+    'fs:ctime' => 1,
+);
+
+# TODO I think I've got this matching POSIX, but I'm surely wrong since I did
+# this when I was half asleep and when I can't really remember the official
+# POSIX standard on this anymore. I need to verify this is correct and then
+# correct the heinous mistakes I've made.
+sub has_permission {
+    my ($self, $path, $action) = @_;
+
+    my $pname = basename($path);
+    my $real_path = $self->real_path($path);
+    my $par_path = $self->real_path(dirname($path));
+    my $dir_path = $self->real_path(dirname(dirname($path)));
+
+    if ($action eq $ADD_NODE && -d $par_path && -w $par_path) {
+        return 1;
+    }
+
+    if ($action eq $SET_PROPERTY && $ustat_props{$pname} && -w $dir_path) {
+        return 1;
+    }
+
+    if ($action eq $SET_PROPERTY && $pname eq 'fs:content' && -w $real_path) {
+        return 1;
+    }
+
+    if ($action eq $REMOVE && -e $real_path && -w $par_path) {
+        return 1;
+    }
+
+    if ($action eq $READ && $pname eq 'fs:content' && -r $par_path) {
+        return 1;
+    }
+
+    if ($action eq $READ && -d $real_path && -r $real_path && -x $real_path) {
+        return 1;
+    }
+
+    if ($action eq $READ && -e $real_path && -r $real_path) {
+        return 1;
+    }
+
+    if ($action eq $READ && defined $stat_names{$pname} && -r $dir_path) {
+        return 1;
+    }
+
+    return 0;
+}
 
 =head1 SEE ALSO
 
