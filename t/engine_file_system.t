@@ -3,8 +3,9 @@
 use strict;
 use warnings;
 
-use Test::More tests => 390;
+use Test::More tests => 447;
 
+use IO::Scalar;
 use Repository::Simple qw( :permission_constants );
 
 use_ok('Repository::Simple::Engine::FileSystem');
@@ -29,9 +30,12 @@ can_ok($engine, qw(
     nodes_in
     properties_in
     get_scalar
+    set_scalar
     get_handle
+    set_handle
     namespaces
     has_permission
+    save_property
 ));
 
 # Test fs:object node type
@@ -54,7 +58,7 @@ is_deeply({ $fs_object->property_types },
         'fs:size'    => 'fs:scalar-static',
         'fs:atime'   => 'fs:scalar',
         'fs:mtime'   => 'fs:scalar',
-        'fs:ctime'   => 'fs:scalar',
+        'fs:ctime'   => 'fs:scalar-static',
         'fs:blksize' => 'fs:scalar-static',
         'fs:blocks'  => 'fs:scalar-static',
     }, 'fs:object property types'
@@ -83,7 +87,7 @@ is_deeply({ $fs_file->property_types },
         'fs:size'    => 'fs:scalar-static',
         'fs:atime'   => 'fs:scalar',
         'fs:mtime'   => 'fs:scalar',
-        'fs:ctime'   => 'fs:scalar',
+        'fs:ctime'   => 'fs:scalar-static',
         'fs:blksize' => 'fs:scalar-static',
         'fs:blocks'  => 'fs:scalar-static',
         'fs:content' => 'fs:handle',
@@ -118,7 +122,7 @@ is_deeply({ $fs_directory->property_types },
         'fs:size'    => 'fs:scalar-static',
         'fs:atime'   => 'fs:scalar',
         'fs:mtime'   => 'fs:scalar',
-        'fs:ctime'   => 'fs:scalar',
+        'fs:ctime'   => 'fs:scalar-static',
         'fs:blksize' => 'fs:scalar-static',
         'fs:blocks'  => 'fs:scalar-static',
     }, 'fs:object property_types'
@@ -238,6 +242,96 @@ for my $path (keys %paths) {
 
     # Test path_exists() on a non-existent property
     ok(!$engine->path_exists($path_slash.'fs:notta'), '!path_exists property');
+
+    # Test chown/chgrp if we are root
+    SKIP: {
+        skip 'Cannot test uid changes unless tested as root', 4 
+            unless $< == 0;
+
+        # Test chown
+        my $fs_uid = $path_slash.'fs:uid';
+        my $old_uid = $engine->get_scalar($fs_uid);
+        $engine->set_scalar($fs_uid, 1);
+        $engine->save_property($fs_uid);
+        is($engine->get_scalar($fs_uid), 1);
+        $engine->set_scalar($fs_uid, $old_uid);
+        $engine->save_property($fs_uid);
+        is($engine->get_scalar($fs_uid), $old_uid);
+
+        # Test chgrp
+        my $fs_gid = $path_slash.'fs:gid';
+        my $old_gid = $engine->get_scalar($fs_gid);
+        $engine->set_scalar($fs_gid, 1);
+        $engine->save_property($fs_gid);
+        is($engine->get_scalar($fs_gid), 1);
+        $engine->set_scalar($fs_gid, $old_gid);
+        $engine->save_property($fs_gid);
+        is($engine->get_scalar($fs_gid), $old_gid);
+    }
+
+    # Test setting chmod
+    my $fs_mode = $path_slash.'fs:mode';
+    my $old_mode = $engine->get_scalar($fs_mode);
+    my $new_mode = ($old_mode & ~0777) | 0755;
+    $engine->set_scalar($fs_mode, $new_mode);
+    $engine->save_property($fs_mode);
+    is($engine->get_scalar($fs_mode), $new_mode);
+    $engine->set_scalar($fs_mode, $old_mode);
+    $engine->save_property($fs_mode);
+    is($engine->get_scalar($fs_mode), $old_mode);
+
+    # Test setting atime and mtime
+    for my $time (qw( fs:atime fs:mtime )) {
+        my $fs_time = $path_slash.$time;
+        my $old_time = $engine->get_scalar($fs_time);
+        $engine->set_scalar($fs_time, 0);
+        $engine->set_scalar($fs_time, 0);
+        $engine->save_property($fs_time);
+        is($engine->get_scalar($fs_time), 0);
+        $engine->set_scalar($fs_time, $old_time);
+        $engine->set_scalar($fs_time, $old_time);
+        $engine->save_property($fs_time);
+        is($engine->get_scalar($fs_time), $old_time);
+    }
+
+    # Test setting fs:content
+    if ($paths{$path} eq 'fs:file') {
+        # Make sure the file is writable
+        chmod 0644, $engine->real_path($path);
+
+        my $test_str1 =
+            qq(Besides, I'm training to be a cage fighter.\n);
+        my $test_str2 =
+            qq(What? You have like the worst reflexes in the world, Kip.\n);
+        my $test_str3 =
+            qq(Come down here and try to hit me, Napolean.\n);
+
+        # Get ready to test setters on fs:content
+        my $fs_content = $path_slash.'fs:content';
+        my $old_content = $engine->get_scalar($fs_content);
+
+        # Test set_scalar() on fs:content
+        $engine->set_scalar($fs_content, $test_str1);
+        $engine->save_property($fs_content);
+        is($engine->get_scalar($fs_content), $test_str1);
+        
+        # Test write with get_handle() on fs:content
+        my $fh = $engine->get_handle($fs_content, ">");
+        print $fh $test_str2;
+        $engine->save_property($fs_content);
+        is($engine->get_scalar($fs_content), $test_str2);
+
+        # Test set_handle() on fs:content
+        $fh = IO::Scalar->new(\$test_str3);
+        $engine->set_handle($fs_content, $fh);
+        $engine->save_property($fs_content);
+        is($engine->get_scalar($fs_content), $test_str3);
+
+        # Return fs:content to normal
+        $engine->set_scalar($fs_content, $old_content);
+        $engine->save_property($fs_content);
+        is($engine->get_scalar($fs_content), $old_content);
+    }
 }
 
 # Test path_exists() on a non-existent node

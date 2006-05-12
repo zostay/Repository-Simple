@@ -3,7 +3,7 @@
 use strict;
 use warnings;
 
-use Test::More tests => 21;
+use Test::More tests => 24;
 
 use_ok('Repository::Simple::Engine',
     qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS )
@@ -39,9 +39,12 @@ my @methods = qw(
     nodes_in
     properties_in
     get_scalar
+    set_scalar
     get_handle
+    set_handle
     namespaces
     has_permission
+    save_property
 );
 
 # Test the presence of all required methods

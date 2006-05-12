@@ -3,9 +3,11 @@
 use strict;
 use warnings;
 
-use Test::More tests => 62;
+use Test::More tests => 74;
 
 use Repository::Simple qw( :permission_constants );
+
+use IO::Scalar;
 
 use_ok('Repository::Simple::Engine::Memory');
 
@@ -60,9 +62,12 @@ can_ok($engine, qw(
     nodes_in
     properties_in
     get_scalar
+    set_scalar
     get_handle
+    set_handle
     namespaces
     has_permission
+    save_property
 ));
 
 # Test mem:generic-node node type
@@ -172,6 +177,38 @@ for my $path (keys %paths) {
         my $scalar = $engine->get_scalar($path);
         my $handle = $engine->get_handle($path);
         is($scalar, join '', <$handle>);
+
+        # Some test strings we can use
+        my $test_str1 =
+            qq(Is grandma there?\n);
+        my $test_str2 =
+            qq(Can you bring me my chapstick?\n);
+        my $test_str3 =
+            qq(But my lips hurt real bad!\n);
+
+        # Remember the old value
+        my $old_value = $engine->get_scalar($path);
+
+        # Test set_scalar()
+        $engine->set_scalar($path, $test_str1);
+        $engine->save_property($path);
+        is($engine->get_scalar($path), $test_str1);
+
+        # Test write with get_handle()
+        my $fh = $engine->get_handle($path, ">");
+        print $fh $test_str2;
+        $engine->save_property($path);
+        is($engine->get_scalar($path), $test_str2);
+
+        # Test set_handle()
+        $fh = IO::Scalar->new(\$test_str3);
+        $engine->set_handle($path, $fh);
+        $engine->save_property($path);
+        is($engine->get_scalar($path), $test_str3);
+
+        # Return to normal
+        $engine->set_scalar($path, $old_value);
+        is($engine->get_scalar($path), $old_value);
     }
 }
 

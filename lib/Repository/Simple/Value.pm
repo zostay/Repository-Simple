@@ -3,7 +3,7 @@ package Repository::Simple::Value;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.05';
 
 =head1 NAME
 
@@ -90,6 +90,36 @@ sub get_handle {
     my ($self, $mode) = @_;
 
     return $self->{engine}->get_handle($self->{path}, $mode)
+}
+
+=item $value-E<gt>set_handle($handle)
+
+Given a ready-to-read IO handle, this method will replace the contents of the value with the contents of the entire file handle. The handle should be passed as a reference to a glob. E.g.,
+
+  $foo = "blah blah";
+  $value1->set_handle(\*STDIN);
+  $value2->set_handle(IO::Scalar->new(\$foo));
+
+Make sure to call the C<save()> method on the property or a parent node to ensure the change has taken place. The change might take place immediately for some engines, but the change is guaranteed to have happened by the time the C<save()> method returned.
+
+=cut
+
+sub set_handle {
+    my ($self, $handle) = @_;
+    $self->{engine}->set_handle($self->{path}, $handle);
+}
+
+=item $value-E<gt>set_value($value)
+
+Replaces the value with the scalar value C<$value>.
+
+Make sure to call the C<save()> method on the property or a parent node to ensure the change has taken place. The change might take place immediately for some engines, but the change is guaranteed to have happened by the time the C<save()> method returned.
+
+=cut
+
+sub set_scalar {
+    my ($self, $value) = @_;
+    $self->{engine}->set_scalar($self->{path}, $value);
 }
 
 =back

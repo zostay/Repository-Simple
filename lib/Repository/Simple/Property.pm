@@ -3,7 +3,7 @@ package Repository::Simple::Property;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.05';
 
 use Repository::Simple::Util qw( normalize_path );
 use Repository::Simple::Value;
@@ -104,6 +104,19 @@ sub engine {
     my $self = shift;
     return $self->{engine} if $self->{engine};
     return $self->{engine} = $self->{node}->repository->engine;
+}
+
+=item $property-E<gt>save
+
+Tells the storage engine to save the property. If you've modified the property
+somehow, the change might already have been made. However, the change is not
+guaranteed until this method is called.
+
+=cut
+
+sub save {
+    my $self = shift;
+    return $self->{engine}->save_property($self->path);
 }
 
 =back

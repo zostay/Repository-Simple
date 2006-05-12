@@ -3,7 +3,7 @@ package Repository::Simple::Engine::Memory;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Carp;
 use IO::Scalar;
@@ -257,11 +257,25 @@ sub get_scalar {
 }
 
 sub get_handle {
-    my ($self, $path) = @_;
+    my ($self, $path, $mode) = @_;
 
     my $item = $self->check_lookup('property', $path);
 
-    return IO::Scalar->new(\$item->{value});
+    # Make the scalar into a file handle
+    my $fh = IO::Scalar->new(\$item->{value});
+
+    $mode ||= '<';
+
+    # If we're in read or overwrite mode, set the position to the start
+    if ($mode eq '>') {
+        $item->{value} = '';
+    }
+
+    elsif ($mode eq '+>') {
+        die 'read/overwrite mode for file handles is not supported';
+    }
+
+    return $fh;
 }
 
 sub namespaces {
@@ -271,6 +285,28 @@ sub namespaces {
 }
 
 sub has_permission { 1 }
+
+sub set_scalar {
+    my ($self, $path, $scalar) = @_;
+
+    my $item = $self->check_lookup('property', $path);
+
+    $item->{value} = $scalar;
+}
+
+sub set_handle {
+    my ($self, $path, $handle) = @_;
+
+    my $item = $self->check_lookup('property', $path);
+
+    $item->{value} = join '', readline($handle);
+}
+
+sub save_property {
+    my ($self, $path) = @_;
+
+    my $item = $self->check_lookup('property', $path);
+}
 
 =head1 AUTHOR
 

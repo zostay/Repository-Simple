@@ -1,3 +1,14 @@
+0.05    2006-05-11 22:13    Andrew Sterling Hanenkamp
+
+    * Added specification for writes with get_handle(), added set_scalar(),
+      set_handle(), and save_property() to Repository::Simple::Engine.
+    * Added save() to Repository::Simple::Property.
+    * Added implementations of the new get_handle(), set_scalar(), set_handle(),
+      and save_property() functionality to Repository::Simple::Engine::Memory,
+      and Repository::Simple::Engine::FileSystem.
+    * Changed fs:ctime to a fs:scalar-static property.
+    * Added set_scalar() and set_handle() methods to Repository::Simple::Value.
+    
 0.04    2006-04-18 06:56    Andrew Sterling Hanenkamp
     
     * Added the check_permission() method to Repository::Simple and the

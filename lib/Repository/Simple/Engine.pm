@@ -3,7 +3,7 @@ package Repository::Simple::Engine;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Readonly;
 
@@ -47,7 +47,11 @@ To implement a content repository engine, create a subclass of L<Repository::Sim
   sub nodes_in { ... }
   sub properties_in { ... }
   sub get_scalar { ... }
+  sub set_scalar { ... }
   sub get_handle { ... }
+  sub set_handle { ... }
+  sub namespaces { ... }
+  sub has_permission { ... }
 
 =head1 METHODS
 
@@ -218,6 +222,21 @@ sub get_scalar {
     die 'get_scalar() must be implemented by subclass';
 }
 
+=item $engine-E<gt>set_scalar($path, $value)
+
+Set the value stored the property at C<$path> to the scalar value C<$scalar>.
+
+This method is optional. If your engine does not support writes, then it does
+not need to define this method.
+
+See C<save_property()> for information on how these changes are actually committed.
+
+=cut
+
+sub set_scalar {
+    die 'set_scalar() is not supported.';
+}
+
 =item $handle = $engine-E<gt>get_handle($path, $mode)
 
 Return the value of the property at the given path as an IO handle, with the given mode, C<$mode>. The C<$mode> must be one of:
@@ -254,10 +273,33 @@ These have the same meaning as the Perl C<open()> built-in (i.e., read, write, a
 
 This method must be implemented by subclasses. No implementation is provided.
 
+An implementation must support reading properties by handle for all properties, but is not required to implement write or append handles. If writes or appends are not available, the method must throw an exception when an unsupported file handle type is requested.
+
+The user is required B<not> to call C<close> on any file handle returned via this method, but might do so anyway. The result of such behavior is undefined. It is suggested that the engine should make sure any returned file handles are closed when the appropriate save handle is called.
+
+Whether or not writes/appends are supported does not affect whether or not C<set_handle()> is supported.
+
+See C<save_property()> for information on how these changes are actually committed.
+
 =cut
 
 sub get_handle {
     die 'get_handle() must be implemented by subclass';
+}
+
+=item $engine-E<gt>set_handle($path, $handle)
+
+This method allows the user to set a value using a custom file handle. This
+file handle must be a read-handle ready to read immediately using the C<readline> or C<read>. This specification recommends the use of L<File::Temp> or L<IO::Scalar> for creating these file handles.
+
+This operation is optional and does not need to be implemented if the engine does not handle write operations. Whether this method is implemented does not affect whether or not C<get_handle()> supports writes/appends.
+
+See C<save_property()> for information on how these changes are actually committed.
+
+=cut
+
+sub set_handle {
+    die 'set_handle() is not supported';
 }
 
 =item $namespaces = $engine-E<gt>namespaces
@@ -280,6 +322,20 @@ The C<$action> is one of the constants described under C<check_permission()> in 
 
 sub has_permission {
     die 'has_permission() must be implemented by subclass';
+}
+
+=item $engine-E<gt>save_property($path)
+
+This method is responsible for committing changes made by C<set_scalar()>, C<get_handle()> (using a write or append file handle), and C<set_handle()>. If any of these methods are implemented, this method must also be implemented.
+
+Changes made by one of the mutator methods must be set on the property given path, C<$path>, by the time C<save_property()> returns. However, the changes may be committed sooner. 
+
+The implementation of this method is optional, but required if any of C<set_scalar()>, writes/appends via C<get_handle()>, or C<set_handle()> are implemented.
+
+=cut
+
+sub save_property {
+    die 'save_property() is not supported'
 }
 
 =back

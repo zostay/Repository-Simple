@@ -3,7 +3,7 @@ package Repository::Simple::Engine::FileSystem;
 use strict;
 use warnings;
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 use Carp;
 use Repository::Simple qw( :permission_constants );
@@ -13,7 +13,9 @@ use Repository::Simple::Type::Property;
 use Repository::Simple::Util qw( dirname basename );
 use File::Spec;
 use IO::Scalar;
+use Scalar::Util qw( weaken );
 use Symbol;
+
 
 use base 'Repository::Simple::Engine';
 
@@ -140,7 +142,7 @@ my %node_type_defs = (
             'fs:size'    => 'fs:scalar-static',
             'fs:atime'   => 'fs:scalar',
             'fs:mtime'   => 'fs:scalar',
-            'fs:ctime'   => 'fs:scalar',
+            'fs:ctime'   => 'fs:scalar-static',
             'fs:blksize' => 'fs:scalar-static',
             'fs:blocks'  => 'fs:scalar-static',
         },
@@ -373,8 +375,11 @@ sub _get_handle {
 
     my $handle = gensym;
     open $handle, $mode, $file
-        or croak qq(failed to read "fs:content" property of node ),
-                 qq("$dirname");
+        or croak qq(failed to open "fs:content" property of node ),
+                 qq("$dirname" with mode "$mode");
+
+    $self->{handles}{$dirname} = $handle;
+    #weaken $self->{handles}{$dirname};
 
     return $handle;
 }
@@ -416,9 +421,9 @@ sub get_handle {
 
     $mode ||= '<';
 
-    if ($mode ne '<') {
-        croak qq(invalid mode "$mode" given);
-    }
+#    if ($mode ne '<') {
+#        croak qq(invalid mode "$mode" given);
+#    }
 
     my $basename = basename($path);
     my $dirname  = dirname($path);
@@ -433,7 +438,7 @@ sub get_handle {
                   qq("$dirname");
         }
 
-        return $self->_get_handle($dirname, $real_path, '<');
+        return $self->_get_handle($dirname, $real_path, $mode);
     }
 
     elsif (defined $stat_names{ $basename }) {
@@ -516,6 +521,82 @@ sub has_permission {
     }
 
     return 0;
+}
+
+sub set_scalar {
+    my ($self, $path, $value) = @_;
+
+    my $basename = basename($path);
+    my $dirname  = dirname($path);
+
+    my $real_path = $self->real_path($dirname);
+
+    $self->check_real_path($real_path, $dirname);
+
+    if ($basename eq 'fs:content') {
+        unless (-f $real_path) {
+            croak qq(no "fs:content" property associated with node at ),
+                  qq("$dirname");
+        }
+
+        my $handle = $self->_get_handle($dirname, $real_path, '>');
+        print $handle $value;
+        close $handle;
+    }
+
+    elsif ($basename eq 'fs:mode') {
+        chmod $value, $real_path
+            or croak qq(Failed to change "$path" to "$value": $!);
+    }
+
+    elsif ($basename eq 'fs:uid') {
+        my $gid = $self->_get_scalar($real_path, 'fs:gid');
+        chown $value, $gid, $real_path
+            or croak qq(Failed to change "$path" to "$value": $!);
+    }
+
+    elsif ($basename eq 'fs:gid') {
+        my $uid = $self->_get_scalar($real_path, 'fs:uid');
+        chown $uid, $value, $real_path
+            or croak qq(Failed to change "$path" to "$value": $!);
+    }
+
+    elsif ($basename eq 'fs:atime') {
+        my $mtime = $self->_get_scalar($real_path, 'fs:mtime');
+        utime $value, $mtime, $real_path
+            or croak qq(Failed to change "$path" to "$value": $!);
+    }
+
+    elsif ($basename eq 'fs:mtime') {
+        my $atime = $self->_get_scalar($real_path, 'fs:atime');
+        utime $atime, $value, $real_path
+            or croak qq(Failed to change "$path" to "$value": $!);
+    }
+
+    else {
+        croak qq(property "$basename" is static or does not exist for ),
+              qq("$dirname" );
+    }
+}
+
+sub set_handle {
+    my ($self, $path, $handle) = @_;
+
+    # TODO This is cheating and should be done better
+    my $value = join '', readline($handle);
+    $self->set_scalar($path, $value);
+}
+
+sub save_property {
+    my ($self, $path) = @_;
+
+    my $dirname = dirname($path);
+
+    # Check for a file handle at the given path; close it if found
+    if (defined $self->{handles}{$dirname}) {
+        my $handle = delete $self->{handles}{$dirname};
+        close $handle;
+    }
 }
 
 =head1 SEE ALSO
