@@ -3,27 +3,16 @@ package Repository::Simple;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Carp;
 use Readonly;
 use Repository::Simple::Engine qw( :exists_constants );
 use Repository::Simple::Node;
+use Repository::Simple::Permission;
 use Repository::Simple::Util qw( basename dirname normalize_path );
 
-require Exporter;
-
-our @ISA = qw( Exporter );
-
-our @EXPORT_OK = qw( $ADD_NODE $SET_PROPERTY $REMOVE $READ );
-our %EXPORT_TAGS = (
-    'permission_constants' => \@EXPORT_OK,
-);
-
-Readonly our $ADD_NODE     => "add_node";
-Readonly our $SET_PROPERTY => "set_property";
-Readonly our $REMOVE       => "remove";
-Readonly our $READ         => "read";
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 =head1 NAME
 
@@ -129,7 +118,7 @@ Not yet implemented. This storage engine allows one or more engines to be layere
 
 =item L<Repository::Simple::Engine::Memory>
 
-Not yet implemented. This storage engine reads and stores hierarchies in transient memory structures.
+This storage engine reads and stores hierarchies in transient memory structures.
 
 =item L<Repository::Simple::Engine::Passthrough>
 
@@ -274,6 +263,9 @@ Return the root node in the repository.
 
 sub root_node {
     my $self = shift;
+
+    $self->check_permission("/", $READ);
+
     return Repository::Simple::Node->new($self, "/");
 }
 
@@ -287,6 +279,8 @@ sub get_item {
     my ($self, $path) = @_;
 
     $path = normalize_path('/', $path);
+
+    $self->check_permission($path, $READ);
 
     my $exists = $self->engine->path_exists($path);
 
@@ -356,6 +350,15 @@ The constants may be imported from this package individually or as a group using
 sub check_permission {
     my ($self, $path, $action) = @_;
     my $engine = $self->engine;
+
+    # Sanity checks
+    croak "No path given" unless defined $path;
+    croak "No action given" unless defined $action;
+    croak qq(Invalid action "$action" given)
+        unless $action =~ /^(?:$READ|$SET_PROPERTY|$REMOVE|$ADD_NODE)$/;
+
+    # Normalize path
+    $path = normalize_path('/', $path);
 
     # What is it?
     my $exists = $engine->path_exists($path);

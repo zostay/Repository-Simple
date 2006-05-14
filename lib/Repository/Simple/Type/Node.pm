@@ -3,11 +3,13 @@ package Repository::Simple::Type::Node;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.06';
 
 use Carp;
 use Repository::Simple::Util qw( dirname );
 use Scalar::Util qw( weaken );
+
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 =head1 NAME
 

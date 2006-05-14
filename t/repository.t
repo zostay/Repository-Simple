@@ -3,9 +3,10 @@
 use strict;
 use warnings;
 
-use Test::More tests => 24;
+use Test::More tests => 25;
 
-use_ok('Repository::Simple', ':permission_constants');
+use_ok('Repository::Simple');
+use_ok('Repository::Simple::Permission');
 
 use vars qw( $ADD_NODE $SET_PROPERTY $REMOVE $READ );
 

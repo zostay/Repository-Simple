@@ -5,7 +5,8 @@ use warnings;
 
 use Test::More tests => 74;
 
-use Repository::Simple qw( :permission_constants );
+use Repository::Simple;
+use Repository::Simple::Permission;
 
 use IO::Scalar;
 

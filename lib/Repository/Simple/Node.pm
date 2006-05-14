@@ -3,10 +3,15 @@ package Repository::Simple::Node;
 use strict;
 use warnings;
 
+use Carp;
+use Readonly;
+use Repository::Simple::Permission;
 use Repository::Simple::Property;
 use Repository::Simple::Util qw( basename dirname normalize_path );
 
-our $VERSION = '0.01';
+our $VERSION = '0.06';
+
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 =head1 NAME
 
@@ -90,9 +95,14 @@ If you consider time travel, you may wish to stop yourself before you think too 
 
 sub parent {
     my $self = shift;
+
+    my $parent_path = dirname($self->path);
+
+    $self->repository->check_permission($parent_path, $READ);
+
     return Repository::Simple::Node->new(
         $self->repository, 
-        dirname($self->path),
+        $parent_path,
     );
 }
 
@@ -135,13 +145,24 @@ Returns all the child nodes of this node.
 
 sub nodes {
     my ($self) = @_;
-    return 
-        map { 
-            Repository::Simple::Node->new(
-                $self->{repository}, 
-                normalize_path($self->{path}, $_),
-            ) 
-        } $self->{repository}->engine->nodes_in($self->{path});
+
+    my $path       = $self->path;
+    my $repository = $self->repository;
+    my @node_names = $repository->engine->nodes_in($path);
+
+    my @nodes;
+    for my $node_name (@node_names) {
+        eval {
+            my $node_path = normalize_path($path, $node_name);
+            $repository->check_permission($node_path, $READ);
+            push @nodes, Repository::Simple::Node->new($repository, $node_path);
+        };
+
+        # Ignore errors, just don't include the unreadable nodes
+        carp $@ if $@;
+    }
+
+    return @nodes;
 }
 
 =item @properties = $node-E<gt>properties
@@ -152,9 +173,25 @@ Returns all the proeprties of this node.
 
 sub properties {
     my ($self) = @_;
-    return 
-        map { Repository::Simple::Property->new($self, $_) } 
-            $self->{repository}->engine->properties_in($self->{path});
+    
+    my $path           = $self->path;
+    my $repository     = $self->repository;
+    my @property_names = $repository->engine->properties_in($path);
+
+    my @properties;
+    for my $property_name (@property_names) {
+        eval {
+            my $property_path = normalize_path($path, $property_name);
+            $repository->check_permission($path, $READ);
+            push @properties, 
+                Repository::Simple::Property->new($self, $property_name);
+        };
+
+        # Ignore errors, just don't list those properties
+        carp $@ if $@;
+    }
+
+    return @properties;
 }
 
 =item $type = $node-E<gt>type
@@ -165,7 +202,7 @@ Returns the L<Repository::Simple::Type::Node> object describing the node.
 
 sub type {
     my ($self) = @_;
-    return $self->{repository}->engine->node_type_of($self->{path});
+    return $self->repository->engine->node_type_of($self->{path});
 }
 
 =back

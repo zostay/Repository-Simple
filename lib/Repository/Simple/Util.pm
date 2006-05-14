@@ -3,7 +3,7 @@ package Repository::Simple::Util;
 use strict;
 use warnings;
 
-our $VERSION = '0.01';
+our $VERSION = '0.06';
 
 use Carp;
 
@@ -14,6 +14,18 @@ our @EXPORT_OK = qw(
     normalize_path 
     basename 
     dirname 
+);
+
+our @CARP_NOT = qw(
+    Repository::Simple::Engine
+    Repository::Simple::Node
+    Repository::Simple::Permission
+    Repository::Simple::Property
+    Repository::Simple::Type::Node
+    Repository::Simple::Type::Property
+    Repository::Simple::Type::Value
+    Repository::Simple::Value
+    Repository::Simple
 );
 
 =head1 NAME
@@ -69,7 +81,7 @@ sub normalize_path {
     }
 
     if (!defined $messy_path) {
-        croak "normalize_path must be given a message path";
+        croak "normalize_path must be given a messy path";
     }
 
     # Fix us up to an absolute path

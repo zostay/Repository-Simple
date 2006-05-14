@@ -3,11 +3,12 @@ package Repository::Simple::Engine::FileSystem;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
 use Carp;
-use Repository::Simple qw( :permission_constants );
+use Repository::Simple;
 use Repository::Simple::Engine qw( $NODE_EXISTS $PROPERTY_EXISTS $NOT_EXISTS );
+use Repository::Simple::Permission;
 use Repository::Simple::Type::Node;
 use Repository::Simple::Type::Property;
 use Repository::Simple::Util qw( dirname basename );
@@ -189,7 +190,7 @@ my %property_type_defs = (
     'fs:handle' => {
         name         => 'fs:handle',
         auto_created => 1,
-        updatable    => 0,
+        updatable    => 1,
         removable    => 0,
     },
 );
@@ -496,7 +497,7 @@ sub has_permission {
         return 1;
     }
 
-    if ($action eq $SET_PROPERTY && $pname eq 'fs:content' && -w $real_path) {
+    if ($action eq $SET_PROPERTY && $pname eq 'fs:content' && -w $par_path) {
         return 1;
     }
 

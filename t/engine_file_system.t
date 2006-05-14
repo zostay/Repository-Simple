@@ -6,7 +6,8 @@ use warnings;
 use Test::More tests => 447;
 
 use IO::Scalar;
-use Repository::Simple qw( :permission_constants );
+use Repository::Simple;
+use Repository::Simple::Permission;
 
 use_ok('Repository::Simple::Engine::FileSystem');
 
@@ -163,7 +164,7 @@ isa_ok($fs_handle, 'Repository::Simple::Type::Property', 'fs:handle isa');
 is($fs_handle->name, 'fs:handle', 'fs:handle name');
 is($fs_handle->value_type->name, 'rs:scalar', 'fs:handle value_type');
 ok($fs_handle->auto_created, 'fs:handle auto_created');
-ok(!$fs_handle->updatable, 'fs:handle updatable');
+ok($fs_handle->updatable, 'fs:handle updatable');
 ok(!$fs_handle->removable, 'fs:handle removable');
 undef $fs_handle;
 

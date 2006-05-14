@@ -3,11 +3,16 @@ package Repository::Simple::Value;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
+
+use Repository::Simple::Permission;
+use Repository::Simple::Util;
+
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 =head1 NAME
 
-Repository::Simple::Value - Tie interface to property values
+Repository::Simple::Value - Class for retrieving and setting property values
 
 =head1 DESCRIPTION
 
@@ -28,11 +33,12 @@ This class is used for access a property value. This class is never instantiated
 # Create a value object.
 #
 sub new {
-    my ($class, $engine, $path) = @_;
+    my ($class, $repository, $path) = @_;
 
     return bless { 
-        engine => $engine,
-        path => $path,
+        repository => $repository,
+        engine     => $repository->engine,
+        path       => $path,
     }, $class;
 }
 
@@ -44,6 +50,8 @@ Retrieve the value of the property as a scalar value.
 
 sub get_scalar {
     my $self = shift;
+
+    $self->{repository}->check_permission($self->{path}, $READ);
 
     return $self->{engine}->get_scalar($self->{path});
 }
@@ -89,6 +97,14 @@ If the value cannot be returned with a handle in the given mode, the method will
 sub get_handle {
     my ($self, $mode) = @_;
 
+    $mode ||= '<';
+
+    $self->{repository}->check_permission($self->{path}, $READ)
+        if $mode =~ /<|\+/;
+
+    $self->{repository}->check_permission($self->{path}, $SET_PROPERTY)
+        if $mode =~ />|\+/;
+
     return $self->{engine}->get_handle($self->{path}, $mode)
 }
 
@@ -106,6 +122,9 @@ Make sure to call the C<save()> method on the property or a parent node to ensur
 
 sub set_handle {
     my ($self, $handle) = @_;
+
+    $self->{repository}->check_permission($self->{path}, $SET_PROPERTY);
+
     $self->{engine}->set_handle($self->{path}, $handle);
 }
 
@@ -119,6 +138,9 @@ Make sure to call the C<save()> method on the property or a parent node to ensur
 
 sub set_scalar {
     my ($self, $value) = @_;
+
+    $self->{repository}->check_permission($self->{path}, $SET_PROPERTY);
+
     $self->{engine}->set_scalar($self->{path}, $value);
 }
 

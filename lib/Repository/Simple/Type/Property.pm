@@ -5,10 +5,13 @@ use warnings;
 
 use Carp;
 
-our $VERSION = '0.01';
+our $VERSION = '0.06';
 
 use Repository::Simple::Type::Value::Scalar;
+use Repository::Simple::Util;
 use Scalar::Util qw( weaken );
+
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 =head1 NAME
 

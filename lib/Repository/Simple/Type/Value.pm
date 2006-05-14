@@ -4,12 +4,15 @@ use strict;
 use warnings;
 
 use Readonly;
+use Repository::Simple::Util;
+
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 require Exporter;
 
 our @ISA = qw( Exporter );
 
-our $VERSION = '0.01';
+our $VERSION = '0.06';
 
 our @EXPORT_OK = qw(
     $SCALAR_TYPE

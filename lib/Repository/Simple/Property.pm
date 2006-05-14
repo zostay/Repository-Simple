@@ -3,10 +3,14 @@ package Repository::Simple::Property;
 use strict;
 use warnings;
 
-our $VERSION = '0.05';
+our $VERSION = '0.06';
 
+use Readonly;
+use Repository::Simple::Permission;
 use Repository::Simple::Util qw( normalize_path );
 use Repository::Simple::Value;
+
+our @CARP_NOT = qw( Repository::Simple::Util );
 
 =head1 NAME
 
@@ -86,7 +90,8 @@ Retrieve the value stored in the property.
 
 sub value {
     my $self = shift;
-    return Repository::Simple::Value->new($self->engine, $self->path);
+    return Repository::Simple::Value->new(
+        $self->parent->repository, $self->path);
 }
 
 =item $type = $self-E<gt>type
@@ -116,7 +121,9 @@ guaranteed until this method is called.
 
 sub save {
     my $self = shift;
-    return $self->{engine}->save_property($self->path);
+    my $path = $self->path;
+    $self->parent->repository->check_permission($path, $SET_PROPERTY);
+    return $self->engine->save_property($path);
 }
 
 =back

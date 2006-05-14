@@ -1,3 +1,28 @@
+0.06    2006-05-13 21:35    Andrew Sterling Hanenkamp
+
+    * Added Repository::Simple::Permission to hold the permission constants to
+      avoid a compile-time Catch 22.
+    * Updated t/repository.t for the permission constant change.
+    * Updated t/engine_memory.t for the permission constant change.
+    * Corrected the updatable property on the 'fs:handle' property type to true.
+    * Updated t/engine_file_system.t for the permission constant change and to
+      correct the value of the updatable property on 'fs:handle' properties.
+    * Added a call to check_permission() in root_node() and get_item() of
+      Repository::Simple.
+    * Added sanity checks to check_permission() in Repository::Simple.
+    * Added @CARP_NOT to all classes to improve error handling.
+    * Added a call to check_permission() in save() of
+      Repository::Simple::Property.
+    * Added a call to check_permission() in parent() of
+      Repository::Simple::Node.
+    * Added a call to check_permission(), which filters the results without
+      throwing an exception, in nodes() and properties() of
+      Repository::Simple::Node.
+    * Addeda  call to check_permission() in get_scalar(), get_handle(),
+      set_handle(), and set_scalar() in Repository::Simple::Value.
+    * Fixed some typos in error messages and made some minor documentation
+      updates.
+
 0.05    2006-05-11 22:13    Andrew Sterling Hanenkamp
 
     * Added specification for writes with get_handle(), added set_scalar(),
